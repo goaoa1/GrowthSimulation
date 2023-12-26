@@ -1,12 +1,15 @@
 from math import comb
+import random
+import EnchantSimulator
 
 class Player:
     #인벤토리
-    item_List = []
+    # key : count
+    item_dict = {}
     equipment_List = []
     def __init__(self):
-        self.item_List = None
-        self.Equipment_List = None
+        self.item_dict = None
+        self.equipment_List = None
 
 
     def chooseHuntingField(self,huntingField_List):
@@ -28,6 +31,7 @@ class Player:
                     # 인벤토리에 존재하는 개수
                     # TODO 여기는 강화 타입이 penalty 일때를 의미
                     # TODO 플레이어 인벤토리를 읽도록 처리
+                    # TODO getEnchantMaterial
                     try_Count = 10
                     __expectedGrowth = _expectedGrowth
                     # 몇 회 시도하는 게 최선인지 알 수 없으니 try_Count가 n이라면 1~n까지 시도한 경우의 수를 모두 따지고 그중 가장 큰 값을 가져가자! 
@@ -60,6 +64,9 @@ class Player:
             _battlePoint = _battlePoint + equipment.getBattlePoint()
         return _battlePoint
 
+    def acquire_item(self, item, count):
+        self.item_dict[item] += count
+
 
     # 보유하고 있는 장비 기반으로 아이템의 가치 산정
     def calculateValue(item):
@@ -82,9 +89,15 @@ class Item:
 class Equipment:
     #TODO static... 또는 별도 데이터 테이블로 빼자
     #level : DD,PV,HP,successPercent
-    enchantTable = {0:(10,10,0,0.8), 1:(15,15,0,0.7), 2:(18,18,0,0.6), 3:(20,20,0,0.5)}
+    # TODO failure_penalty, repair_rate
+    # {"DD":0, "PV":0, "HP":0, "success_rate" : 0.1, "failure_penalty":-1, "repair_rate":0.8}
+    enchantTable = {0:{"DD":0, "PV":0, "HP":0, "success_rate" : 0.1, "failure_penalty":-1, "repair_rate":0.8, "enchantMaterial":0,"enchantMaterial_count":1, "enchantMaterial1":0,"enchantMaterial_count1":1, "enchantMaterial2":0,"enchantMaterial_count2":1 }
+                    , 1:{"DD":0, "PV":0, "HP":0, "success_rate" : 0.1, "failure_penalty":-1, "repair_rate":0.8 "enchantMaterial":0,"enchantMaterial_count":1, "enchantMaterial1":0,"enchantMaterial_count1":1, "enchantMaterial2":0,"enchantMaterial_count2":1 }
+                     , 2:{"DD":0, "PV":0, "HP":0, "success_rate" : 0.1, "failure_penalty":-1, "repair_rate":0.8 "enchantMaterial":0,"enchantMaterial_count":1, "enchantMaterial1":0,"enchantMaterial_count1":1, "enchantMaterial2":0,"enchantMaterial_count2":1 }
+                     , 3:{"DD":0, "PV":0, "HP":0, "success_rate" : 0.1, "failure_penalty":-1, "repair_rate":0.8 "enchantMaterial":0,"enchantMaterial_count":1, "enchantMaterial1":0,"enchantMaterial_count1":1, "enchantMaterial2":0,"enchantMaterial_count2":1 }}
     enchantLevel = 0
     enchantType = "penalty1"
+    lowerLimitEnchantLevel = 0
     def __init__(self,enchantLevel,enchantType):
         self.enchantLevel
         self.enchantType
@@ -97,13 +110,23 @@ class Equipment:
     def getEnchantMaterial(self.enchantLevel):
         pass
 
+    # 시행 횟수 - 강화 확률 토대로 계산
     def calculateExpectedGrowth(self,try_Count,targetEnchantLevel):
         success_Percent = self.enchantTable[targetEnchantLevel-1]
-        expectedGrowth = self.enchantTable[targetEnchantLevel] * Calculator.calculateTargetEnchantLevelSuccessPercent(self.enchantType,try_Count,targetEnchantLevel,success_Percent)
+        _expectedGrowth = 0
+        # 강화 결과 성공 시(양수가 나오는) 기대 성장치 합계
+        # TODO 강화 성공 한계 치 등록 필요
+        for _targetEnchantLevel in range(targetEnchantLevel):
+            _expectedGrowth = _expectedGrowth + self.enchantTable[_targetEnchantLevel] * Calculator.calculateTargetEnchantLevelSuccessPercent(self.enchantType,try_Count,_targetEnchantLevel,success_Percent) - self.enchantTable[self.enchantLevel]
+        # 강화 결과 실패 시(음수가 나오는) 기대 성장치 합계
+        # TODO 강화 실패 한계 치 등록 필요
+        for _targetEnchantLevel in range(targetEnchantLevel):
+            # success_Percent를 1의 보수로 바꿨다.
+            _expectedGrowth = _expectedGrowth + self.enchantTable[_targetEnchantLevel] * Calculator.calculateTargetEnchantLevelSuccessPercent(self.enchantType,try_Count,_targetEnchantLevel,1-success_Percent) - self.enchantTable[self.enchantLevel]
+        return _expectedGrowth
+             
 
-        return 
 
-    
 
 
     def isEnchantable(self,player):
@@ -114,18 +137,7 @@ class Equipment:
         pass
 
 class Calculator:
-    def calculateTargetEnchantLevelSuccessPercent(enchantType, try_Count, targetEnchantLevel, success_Percent):
-        if enchantType == "penalty1":
-            # 검증하는 곳(짝수 + 짝수 또는 홀수 + 홀수 쌍만 나오도록 검증)
-            if try_Count % 2 == 0:
-                if targetEnchantLevel % 2 != 0:
-                    raise Exception("시도 횟수가 짝수면 목표 강화 횟수도 짝수여야 합니다")
-            else:
-                if targetEnchantLevel % 2 != 1:
-                    raise Exception("시도 횟수가 홀수면 목표 강화 횟수도 홀수여야 합니다")
-
-            combination_Count = comb(try_Count-2,(try_Count + targetEnchantLevel)/2)
-            return success_Percent^((try_Count+targetEnchantLevel)/2)*(1-success_Percent)^((try_Count-targetEnchantLevel)/2) * combination_Count
+    pass
 
 
 class SimulationManager:
@@ -150,9 +162,7 @@ class SimulationManager:
 
 class HuntingField:
     # item, count
-    gaining = (0,0)
-    gaining1 = (0,0)
-    gaining2 = (0,0)
+    gaining_list = [(0,0),(0,0),(0,0)]
     battlePointLimit = 0
 
     def __init__(self,tuple,tuple1,tuple2):
@@ -165,7 +175,8 @@ class HuntingField:
         return player >= self.battlePointLimit
     
     def giveItem(self,player):
-        player.item_List.append(self.gaining1)
+        for gaining in self.gaining_list:
+            player.acquire_item(gaining)
 
     def getPredictedGainings(self):
         return (self.gaining, self.gaining1, self.gaining2)
