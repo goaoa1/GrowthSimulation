@@ -229,7 +229,6 @@ class Equipment:
 
     # 외부에서 주어진 테이블 대로
     def getBattlePoint(self):
-        print(self.enchantTable.items())
         return (
             self.enchantTable[self.enchantLevel]["dd"]
             + self.enchantTable[self.enchantLevel]["pv"]
