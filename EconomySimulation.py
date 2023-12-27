@@ -20,45 +20,79 @@ class Player:
                 _enterableHuntingField_List.append(huntingField)
 
         # 그 사냥터에서 획득 가능한 재화 찾기
+        expectedGrowthFromHuntingField = 0
+        expectedGrowthFromHuntingField_huntingField = None
         for huntingField in _enterableHuntingField_List:
             huntingField.getPredictedGainings()
         # 그 사냥터에서 성장할 수 있는 기댓값 찾기(획득 가능한 재화를 획득했다고 쳤을 때 성장 기댓값 계산)
             # 강화 가능한 장비류 수집
-            _expectedGrowthFromHuntingField = 0
-            _expectedGrowth = None
+            expectedGrowthFromEquipment = 0
+            expectedGrowthFromEquipment_equipment = None
             for equipment in self.equipment_List:
-                if equipment.isEnchantable(self):
-                    # 인벤토리에 존재하는 개수
-                    # TODO 여기는 강화 타입이 penalty 일때를 의미
-                    # TODO 플레이어 인벤토리를 읽도록 처리
-                    # TODO 최소공배수
-                    for tuple in equipment.getEnchantRecipe:
-                        enchantMaterial = tuple[0]
-                        enchantMaterial_count = tuple[1]
-                        try_count = 0
-                        if enchantMaterial in self.item_dict:
-                            try_count = min(try_count,self.item_dict[enchantMaterial] // enchantMaterial_count)
-                    __expectedGrowth = _expectedGrowth
-                    # 몇 회 시도하는 게 최선인지 알 수 없으니 try_count가 n이라면 1~n까지 시도한 경우의 수를 모두 따지고 그중 가장 큰 값을 가져가자! 
-                    for current_try in range(try_count):
-                        _targetEnchantLevel = current_try
-                        __expectedGrowth = max(_expectedGrowth, equipment.calculateExpectedGrowth(current_try,_targetEnchantLevel))
-                    
-                    _expectedGrowth = max(__expectedGrowth,_expectedGrowth)
-                else:
-                    print("해당 장비는 강화 불가능합니다.")                    
-                    
+                # TODO write TargetEnchantLEvel please
+                expectedGrowthFromTryCount_tuple = self.calculateExpectedGrowthFromEquipmentEnchant(equipment, 10)
+                expectedGrowthFromTryCount = expectedGrowthFromTryCount_tuple[0]
+                #try_count는 굳이 필요 없을 것 같아서 저장 안 함
+                if expectedGrowthFromTryCount >= expectedGrowthFromEquipment:
+                    expectedGrowthFromEquipment = expectedGrowthFromTryCount
+                    expectedGrowthFromEquipment_equipment = equipment
+            if expectedGrowthFromEquipment >= expectedGrowthFromHuntingField:
+                expectedGrowthFromHuntingField = expectedGrowthFromEquipment
+                expectedGrowthFromHuntingField_huntingField = huntingField
+            return expectedGrowthFromHuntingField_huntingField
+
+
      
 
         # 그 기댓값들의 최대값의 사냥터를 반환
         return huntingField
 
-    def chooseEnchant(self):
-        equipment = Equipment()
+    def calculateExpectedGrowthFromEquipmentEnchant(self, equipment,targetEnchantLevel):
+        expectedGrowthFromEquipment = 0
+        if not(equipment.isEnchantable(self)):
+            print("해당 장비는 강화 불가능합니다.")
+            return
+        if equipment.enchantLevel >= targetEnchantLevel:
+            print("목표 강화 레벨과 현재 강화 레벨이 동일하여 강화할 수 없습니다.")
+            return
+        # 강화 시도할 개수
+        try_count = 0
+        for tuple in equipment.getEnchantRecipe:
+            enchantMaterial = tuple[0]
+            enchantMaterial_count = tuple[1]
+            # 강화 재료 종류 별로 만들 수 있는 값 중 가장 작은 값이 제작할 수 있는 개수다.
+            if enchantMaterial in self.item_dict:
+                try_count = min(try_count,self.item_dict[enchantMaterial] // enchantMaterial_count)
+        expectedGrowthFromTryCount = 0
+        expectedGrowthFromTryCount_tryCount = 0
+        for current_try in range(try_count):
+            # 몇 회 시도하는 게 최선인지 알 수 없으니 try_count가 n이라면 1~n까지 시도한 경우의 수를 모두 따지고 그중 가장 큰 값을 가져가자! 
+            targetEnchantLevel = current_try
+            current_expectedGrowth = equipment.calculateExpectedGrowth(current_try,targetEnchantLevel)
+            if current_expectedGrowth >= expectedGrowthFromTryCount:
+                expectedGrowthFromTryCount = current_expectedGrowth
+                expectedGrowthFromTryCount_tryCount = current_try
+        if expectedGrowthFromTryCount >= expectedGrowthFromEquipment:
+            expectedGrowthFromEquipment = expectedGrowthFromTryCount
+        return expectedGrowthFromEquipment, expectedGrowthFromTryCount_tryCount
+
+    # 예상 성장치 따져보고 선택한다.
+    def getBestExpectedEnchantEquipment(self):
+        expectedGrowthFromEquipment = 0
+        expectedGrowthFromEquipment_equipment = None
+        for equipment in self.equipment_List:
+            # TODO write TargetEnchantLEvel please
+            expectedGrowthFromTryCount_tuple = self.calculateExpectedGrowthFromEquipmentEnchant(equipment, 10)
+            expectedGrowthFromTryCount = expectedGrowthFromTryCount_tuple[0]
+            #try_count는 굳이 필요 없을 것 같아서 저장 안 함
+            if expectedGrowthFromTryCount >= expectedGrowthFromEquipment:
+                expectedGrowthFromEquipment = expectedGrowthFromTryCount
+                expectedGrowthFromEquipment_equipment = equipment
+
         return equipment
 
     def runEnchant(equipment):
-        # 인벤토리에서 재화 차감
+        # TODO 인벤토리에서 재화 차감
         # 실제 강화
         equipment.doEnchant()
 
@@ -76,13 +110,6 @@ class Player:
     # 보유하고 있는 장비 기반으로 아이템의 가치 산정
     def calculateValue(item):
         pass
-
-    def buyItem():
-        pass
-
-    def sellItem():
-        pass
-
 
 # 재화
 class Item:
@@ -159,7 +186,7 @@ class SimulationManager:
         # n회 루프하도록 한다.
         for player in self.player_List:
             player.chooseHuntingField().giveItem(player)
-            player.runEnchant(player.chooseEnchant())
+            player.runEnchant(player.getBestExpectedEnchantEquipment())
             print(player.getBattlePoint())
 
 
