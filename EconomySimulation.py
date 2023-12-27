@@ -9,8 +9,8 @@ class Player:
     item_dict = {}
     equipment_List = []
 
-    def __init__(self, equipment_List):
-        self.item_dict = None
+    def __init__(self, item_dict, equipment_List):
+        self.item_dict = item_dict
         self.equipment_List = equipment_List
 
     def chooseHuntingField(self, huntingField_list):
@@ -102,7 +102,7 @@ class Player:
 
         return equipment
 
-    def runEnchant(equipment):
+    def runEnchant(self, equipment):
         # TODO 인벤토리에서 재화 차감
         # 실제 강화
         equipment.doEnchant()
@@ -114,7 +114,11 @@ class Player:
         return _battlePoint
 
     def acquire_item(self, item, count):
-        self.item_dict[item] += count
+        if item in self.item_dict:
+            self.item_dict[item] += count
+        else:
+            self.item_dict[item] = 0
+            self.item_dict[item] += count
 
     # 보유하고 있는 장비 기반으로 아이템의 가치 산정
     def calculateValue(item):
@@ -123,8 +127,10 @@ class Player:
 
 # 재화
 class Item:
-    def __init__():
-        pass
+    itemkey = ""
+
+    def __init__(self, itemkey):
+        self.itemkey = itemkey
 
 
 class EnchantData:
@@ -187,7 +193,8 @@ class Equipment:
         self.enchantType = enchantType
         self.enchantTable = enchantTable
 
-    def doEnchant():
+    # TODO
+    def doEnchant(self):
         # 성공 시 강화 단계 상승
         # 실패 시 아무일도 일어나지 않음 또는 강화 단계 하락
         pass
@@ -201,30 +208,20 @@ class Equipment:
         _expectedGrowth = 0
         # 강화 결과 성공 시(양수가 나오는) 기대 성장치 합계
         # TODO 강화 성공 한계 치 등록 필요
-        for _targetEnchantLevel in range(targetEnchantLevel):
-            _expectedGrowth = (
-                _expectedGrowth
-                + self.enchantTable[_targetEnchantLevel]
-                * Calculator.calculateTargetEnchantLevelSuccessPercent(
-                    self.enchantType, try_count, _targetEnchantLevel, success_Percent
-                )
-                - self.enchantTable[self.enchantLevel]
-            )
         # 강화 결과 실패 시(음수가 나오는) 기대 성장치 합계
         # TODO 강화 실패 한계 치 등록 필요
         for _targetEnchantLevel in range(targetEnchantLevel):
-            # success_Percent를 1의 보수로 바꿨다.
-            _expectedGrowth = (
-                _expectedGrowth
-                + self.enchantTable[_targetEnchantLevel]
-                * Calculator.calculateTargetEnchantLevelSuccessPercent(
-                    self.enchantType,
-                    try_count,
-                    _targetEnchantLevel,
-                    1 - success_Percent,
-                )
-                - self.enchantTable[self.enchantLevel]
-            )
+            _expectedGrowth += (
+                self.enchantTable[_targetEnchantLevel]["dd"]
+                + self.enchantTable[_targetEnchantLevel]["pv"]
+            ) * Calculator.getRateOfReachingEnchantLevel(
+                self.enchantTable,
+                self.enchantLevel,
+                0,
+                try_count,
+                _targetEnchantLevel,
+            ) - self.getBattlePoint()
+
         return _expectedGrowth
 
     def isEnchantable(self, player):
@@ -252,13 +249,14 @@ class SimulationManager:
     # TODO 외부로 빼기 엑셀 같은 데
     def __init__(self):
         self.huntingField_list = [
-            HuntingField((0, 10, 1), (1, 13, 1), (2, 20, 1)),
-            HuntingField((0, 10, 1), (1, 13, 1), (2, 20, 1)),
-            HuntingField((0, 10, 1), (1, 13, 1), (2, 20, 1)),
+            HuntingField(("item0", 10, 1), ("item1", 13, 1), ("item2", 20, 1)),
+            HuntingField(("item0", 10, 1), ("item1", 13, 1), ("item2", 20, 1)),
+            HuntingField(("item0", 10, 1), ("item1", 13, 1), ("item2", 20, 1)),
         ]
         self.enchantData = EnchantData()
         self.player_List = [
             Player(
+                {"item0": 30, "item1": 30, "item2": 30},
                 [
                     Equipment(
                         "equipment0",
@@ -278,7 +276,7 @@ class SimulationManager:
                         "penalty1",
                         self.enchantData.enchantTable["equipment0"],
                     ),
-                ]
+                ],
             )
         ]
 
@@ -296,7 +294,7 @@ class SimulationManager:
 
 class HuntingField:
     # item, count, rate
-    gaining_list = [(0, 0, 1), (0, 0, 1), (0, 0, 1)]
+    gaining_list = [("item0", 0, 1), ("item1", 0, 1), ("item2", 0, 1)]
     battlePointLimit = 0
 
     def __init__(self, tuple, tuple1, tuple2):
@@ -312,7 +310,7 @@ class HuntingField:
         for gaining in self.gaining_list:
             # 확률적으로 지급
             if gaining[2] >= random.random():
-                player.acquire_item((gaining[0], gaining[1]))
+                player.acquire_item(gaining[0], gaining[1])
             else:
                 continue
 
