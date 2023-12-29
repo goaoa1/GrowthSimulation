@@ -27,7 +27,13 @@ class Player:
             huntingField.getPredictedGainings()
             # 그 사냥터에서 성장할 수 있는 기댓값 찾기(획득 가능한 재화를 획득했다고 쳤을 때 성장 기댓값 계산)
             # 강화 가능한 장비류 수집
-            expectedGrowthFromEquipment = self.getBestExpectedEnchantEquipment()[1]
+            result = self.getBestExpectedEnchantEquipment()
+            equipment = result["equipment"]
+            expectedGrowth = result["growth"]
+            enchantLevel = result["enchantlevel"]
+            tryCount = result["tryCount"]
+            print("getBestExpectedEnchantEquipment 결과 : ", result)
+            expectedGrowthFromEquipment = expectedGrowth
             if expectedGrowthFromEquipment >= expectedGrowthFromHuntingField:
                 expectedGrowthFromHuntingField = expectedGrowthFromEquipment
                 expectedGrowthFromHuntingField_huntingField = huntingField
@@ -47,17 +53,20 @@ class Player:
             print("목표 강화 레벨과 현재 강화 레벨이 동일하여 강화할 수 없습니다.")
             return
         # 강화 시도할 개수
-        try_count = 0
+        try_count = -1
         for tuple in equipment.getEnchantRecipe():
             enchantMaterial = tuple[0]
             enchantMaterial_count = tuple[1]
             # 강화 재료 종류 별로 만들 수 있는 값 중 가장 작은 값이 제작할 수 있는 개수다.
             if enchantMaterial in self.item_dict:
-                try_count = min(
-                    try_count, self.item_dict[enchantMaterial] // enchantMaterial_count
-                )
+                _try_count = self.item_dict[enchantMaterial] // enchantMaterial_count
+                if try_count == -1:
+                    try_count = _try_count
+                if try_count >= _try_count:
+                    try_count = _try_count
         expectedGrowthFromTryCount = 0
         expectedGrowthFromTryCount_tryCount = 0
+        print("try_count : ", try_count)
         for current_try in range(try_count):
             # 몇 회 시도하는 게 최선인지 알 수 없으니 try_count가 n이라면 1~n까지 시도한 경우의 수를 모두 따지고 그중 가장 큰 값을 가져가자!
             targetEnchantLevel = current_try
@@ -69,6 +78,7 @@ class Player:
                 expectedGrowthFromTryCount_tryCount = current_try
         if expectedGrowthFromTryCount >= expectedGrowthFromEquipment:
             expectedGrowthFromEquipment = expectedGrowthFromTryCount
+
         return expectedGrowthFromEquipment, expectedGrowthFromTryCount_tryCount
 
     # 예상 성장치 따져보고 선택한다.
@@ -77,12 +87,14 @@ class Player:
     def getBestExpectedEnchantEquipment(self):
         expectedGrowthFromEquipment = 0
         expectedGrowthFromEquipment_equipment = None
+        expectedGrowthFromEquipment_enchantLevel = 0
+        expectedGrowthFromEquipment_tryCount = 0
         for equipment in self.equipment_List:
             if equipment.enchantLevel == equipment.upperLimitEnchantLevel:
                 print("현재 장비 강화 레벨이 강화 한계치와 동일하므로 패스합니다.")
                 continue
             expectedGrowthFromEnchantLevel = 0
-            expectedGrowthFromEnchantLevel_enchantlevel = 0
+            expectedGrowthFromEnchantLevel_enchantLevel = 0
             expectedGrowthFromEnchantLevel_tryCount = 0
             for _targetenchantLevel in range(
                 equipment.enchantLevel + 1, equipment.upperLimitEnchantLevel
@@ -94,6 +106,7 @@ class Player:
                 )
                 if expectedGrowthFromEnchantLevel_tuple is None:
                     # 장비 강화가 불가능한 케이스
+                    raise Exception("장비 강화가 불가능한 케이스")
                     continue
                 else:
                     if (
@@ -103,28 +116,33 @@ class Player:
                         expectedGrowthFromEnchantLevel = (
                             expectedGrowthFromEnchantLevel_tuple[0]
                         )
-                        # 이쪽은 위가 결정되면 알아서 따라갈듯?
-                        expectedGrowthFromEnchantLevel_enchantlevel = (
+                        expectedGrowthFromEnchantLevel_enchantLevel = (
                             _targetenchantLevel
                         )
                         expectedGrowthFromEnchantLevel_tryCount = (
                             expectedGrowthFromEnchantLevel_tuple[1]
                         )
+                        print(
+                            "expectedGrowthFromEnchantLevel, expectedGrowthFromEnchantLevel_enchantLevel, expectedGrowthFromEnchantLevel_tryCount : ",
+                            expectedGrowthFromEnchantLevel,
+                            expectedGrowthFromEnchantLevel_enchantLevel,
+                            expectedGrowthFromEnchantLevel_tryCount,
+                        )
             if expectedGrowthFromEnchantLevel >= expectedGrowthFromEquipment:
                 expectedGrowthFromEquipment = expectedGrowthFromEnchantLevel
                 expectedGrowthFromEquipment_equipment = equipment
-        print(
-            expectedGrowthFromEquipment_equipment,
-            expectedGrowthFromEquipment,
-            expectedGrowthFromEnchantLevel_enchantlevel,
-            expectedGrowthFromEnchantLevel_tryCount,
-        )
-        return (
-            expectedGrowthFromEquipment_equipment,
-            expectedGrowthFromEquipment,
-            expectedGrowthFromEnchantLevel_enchantlevel,
-            expectedGrowthFromEnchantLevel_tryCount,
-        )
+                expectedGrowthFromEquipment_enchantLevel = (
+                    expectedGrowthFromEnchantLevel_enchantLevel
+                )
+                expectedGrowthFromEquipment_tryCount = (
+                    expectedGrowthFromEnchantLevel_tryCount
+                )
+        return {
+            "equipment": expectedGrowthFromEquipment_equipment,
+            "growth": expectedGrowthFromEquipment,
+            "enchantlevel": expectedGrowthFromEquipment_enchantLevel,
+            "tryCount": expectedGrowthFromEquipment_tryCount,
+        }
 
     def runEnchant(self, equipment):
         print("player run enchant", equipment.key)
@@ -174,7 +192,7 @@ class EnchantData:
                     "success_reward": 1,
                     "failure_penalty": -1,
                     "repair_rate": 0.8,
-                    "enchantRecipe": [(1, 1), (1, 1), (1, 1)],
+                    "enchantRecipe": [("item0", 1), ("item1", 1), ("item2", 1)],
                 },
                 1: {
                     "dd": 0,
@@ -184,7 +202,7 @@ class EnchantData:
                     "failure_penalty": -1,
                     "success_reward": 1,
                     "repair_rate": 0.8,
-                    "enchantRecipe": [(1, 1), (1, 1), (1, 1)],
+                    "enchantRecipe": [("item0", 1), ("item1", 1), ("item2", 1)],
                 },
                 2: {
                     "dd": 0,
@@ -194,7 +212,7 @@ class EnchantData:
                     "failure_penalty": -1,
                     "success_reward": 1,
                     "repair_rate": 0.8,
-                    "enchantRecipe": [(1, 1), (1, 1), (1, 1)],
+                    "enchantRecipe": [("item0", 1), ("item1", 1), ("item2", 1)],
                 },
                 3: {
                     "dd": 0,
@@ -204,9 +222,93 @@ class EnchantData:
                     "success_reward": 1,
                     "failure_penalty": -1,
                     "repair_rate": 0.8,
-                    "enchantRecipe": [(1, 1), (1, 1), (1, 1)],
+                    "enchantRecipe": [("item0", 1), ("item1", 1), ("item2", 1)],
                 },
-            }
+            },
+            "equipment1": {
+                0: {
+                    "dd": 0,
+                    "pv": 0,
+                    "hp": 0,
+                    "success_rate": 0.7,
+                    "success_reward": 1,
+                    "failure_penalty": -1,
+                    "repair_rate": 0.8,
+                    "enchantRecipe": [("item0", 1), ("item1", 1), ("item2", 1)],
+                },
+                1: {
+                    "dd": 0,
+                    "pv": 0,
+                    "hp": 0,
+                    "success_rate": 0.5,
+                    "failure_penalty": -1,
+                    "success_reward": 1,
+                    "repair_rate": 0.8,
+                    "enchantRecipe": [("item0", 1), ("item1", 1), ("item2", 1)],
+                },
+                2: {
+                    "dd": 0,
+                    "pv": 0,
+                    "hp": 0,
+                    "success_rate": 0.4,
+                    "failure_penalty": -1,
+                    "success_reward": 1,
+                    "repair_rate": 0.8,
+                    "enchantRecipe": [("item0", 1), ("item1", 1), ("item2", 1)],
+                },
+                3: {
+                    "dd": 0,
+                    "pv": 0,
+                    "hp": 0,
+                    "success_rate": 0.3,
+                    "success_reward": 1,
+                    "failure_penalty": -1,
+                    "repair_rate": 0.8,
+                    "enchantRecipe": [("item0", 1), ("item1", 1), ("item2", 1)],
+                },
+            },
+            "equipment2": {
+                0: {
+                    "dd": 0,
+                    "pv": 0,
+                    "hp": 0,
+                    "success_rate": 0.7,
+                    "success_reward": 1,
+                    "failure_penalty": -1,
+                    "repair_rate": 0.8,
+                    "enchantRecipe": [("item0", 1), ("item1", 1), ("item2", 1)],
+                },
+                1: {
+                    "dd": 0,
+                    "pv": 0,
+                    "hp": 0,
+                    "success_rate": 0.5,
+                    "failure_penalty": -1,
+                    "success_reward": 1,
+                    "repair_rate": 0.8,
+                    "enchantRecipe": [("item0", 1), ("item1", 1), ("item2", 1)],
+                },
+                2: {
+                    "dd": 0,
+                    "pv": 0,
+                    "hp": 0,
+                    "success_rate": 0.4,
+                    "failure_penalty": -1,
+                    "success_reward": 1,
+                    "repair_rate": 0.8,
+                    "enchantRecipe": [("item0", 1), ("item1", 1), ("item2", 1)],
+                },
+                3: {
+                    "dd": 0,
+                    "pv": 0,
+                    "hp": 0,
+                    "success_rate": 0.3,
+                    "success_reward": 1,
+                    "failure_penalty": -1,
+                    "repair_rate": 0.8,
+                    "enchantRecipe": [("item0", 1), ("item1", 1), ("item2", 1)],
+                },
+            },
         }
 
 
@@ -264,7 +366,7 @@ class Equipment:
         for _targetEnchantLevel in range(targetEnchantLevel):
             _expectedGrowth = (
                 self.getBattlePointOfLevel(_targetEnchantLevel)
-            ) * Calculator.getRateOfReachingEnchantLevel(
+            ) * EnchantSimulator.getRateOfReachingEnchantLevel(
                 self.enchantTable,
                 self.enchantLevel,
                 0,
@@ -278,8 +380,9 @@ class Equipment:
 
     def isEnchantable(self, player):
         if self.enchantLevel < self.upperLimitEnchantLevel:
+            return True
+        else:
             return False
-        return True
 
     # 외부에서 주어진 테이블 대로
     def getBattlePointOfLevel(self, enchantLevel):
@@ -287,10 +390,6 @@ class Equipment:
             self.enchantTable[enchantLevel]["dd"]
             + self.enchantTable[enchantLevel]["pv"]
         )
-
-
-class Calculator:
-    pass
 
 
 class SimulationManager:
@@ -324,16 +423,16 @@ class SimulationManager:
                         self.enchantData.enchantTable["equipment0"],
                     ),
                     Equipment(
-                        "equipment0",
+                        "equipment1",
                         1,
                         "penalty1",
-                        self.enchantData.enchantTable["equipment0"],
+                        self.enchantData.enchantTable["equipment1"],
                     ),
                     Equipment(
-                        "equipment0",
+                        "equipment2",
                         1,
                         "penalty1",
-                        self.enchantData.enchantTable["equipment0"],
+                        self.enchantData.enchantTable["equipment2"],
                     ),
                 ],
             )
@@ -346,9 +445,9 @@ class SimulationManager:
             chosenHuntingField = player.chooseHuntingField(self.huntingField_list)
             print("player.chooseHuntingField", chosenHuntingField.key)
             chosenHuntingField.giveItem(player)
-            equipment = player.getBestExpectedEnchantEquipment()[0]
+            equipment = player.getBestExpectedEnchantEquipment()["equipment"]
             if equipment.isEnchantable(player):
-                player.runEnchant(player.getBestExpectedEnchantEquipment()[0])
+                player.runEnchant(player.getBestExpectedEnchantEquipment()["equipment"])
             else:
                 pass
             print(player.getBattlePoint())
@@ -394,7 +493,7 @@ class HuntingField:
 
 def __main__():
     simulationManager = SimulationManager()
-    for current_turn in range(10):
+    for current_turn in range(1):
         simulationManager.processTurn()
 
 
