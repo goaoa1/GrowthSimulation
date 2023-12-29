@@ -27,21 +27,7 @@ class Player:
             huntingField.getPredictedGainings()
             # 그 사냥터에서 성장할 수 있는 기댓값 찾기(획득 가능한 재화를 획득했다고 쳤을 때 성장 기댓값 계산)
             # 강화 가능한 장비류 수집
-            expectedGrowthFromEquipment = 0
-            expectedGrowthFromEquipment_equipment = None
-            for equipment in self.equipment_List:
-                # TODO write TargetEnchantLEvel please
-                expectedGrowthFromTryCount_tuple = (
-                    self.calculateExpectedGrowthFromEquipmentEnchant(equipment, 10)
-                )
-                if expectedGrowthFromTryCount_tuple is not None:
-                    expectedGrowthFromTryCount = expectedGrowthFromTryCount_tuple[0]
-                else:
-                    raise Exception()
-                # try_count는 굳이 필요 없을 것 같아서 저장 안 함
-                if expectedGrowthFromTryCount >= expectedGrowthFromEquipment:
-                    expectedGrowthFromEquipment = expectedGrowthFromTryCount
-                    expectedGrowthFromEquipment_equipment = equipment
+            expectedGrowthFromEquipment = self.getBestExpectedEnchantEquipment()[1]
             if expectedGrowthFromEquipment >= expectedGrowthFromHuntingField:
                 expectedGrowthFromHuntingField = expectedGrowthFromEquipment
                 expectedGrowthFromHuntingField_huntingField = huntingField
@@ -86,23 +72,62 @@ class Player:
         return expectedGrowthFromEquipment, expectedGrowthFromTryCount_tryCount
 
     # 예상 성장치 따져보고 선택한다.
+    # 보유한 장비 중 가장 잘 성장할 것 같은 장비를 반환
+    # TODO 하나가 아니라 줄 세울까(강화를 두 종류 할 수도 있으니까)
     def getBestExpectedEnchantEquipment(self):
         expectedGrowthFromEquipment = 0
         expectedGrowthFromEquipment_equipment = None
         for equipment in self.equipment_List:
-            # TODO write TargetEnchantLEvel please
-            expectedGrowthFromTryCount_tuple = (
-                self.calculateExpectedGrowthFromEquipmentEnchant(equipment, 10)
-            )
-            expectedGrowthFromTryCount = expectedGrowthFromTryCount_tuple[0]
-            # try_count는 굳이 필요 없을 것 같아서 저장 안 함
-            if expectedGrowthFromTryCount >= expectedGrowthFromEquipment:
-                expectedGrowthFromEquipment = expectedGrowthFromTryCount
+            if equipment.enchantLevel == equipment.upperLimitEnchantLevel:
+                print("현재 장비 강화 레벨이 강화 한계치와 동일하므로 패스합니다.")
+                continue
+            expectedGrowthFromEnchantLevel = 0
+            expectedGrowthFromEnchantLevel_enchantlevel = 0
+            expectedGrowthFromEnchantLevel_tryCount = 0
+            for _targetenchantLevel in range(
+                equipment.enchantLevel + 1, equipment.upperLimitEnchantLevel
+            ):
+                expectedGrowthFromEnchantLevel_tuple = (
+                    self.calculateExpectedGrowthFromEquipmentEnchant(
+                        equipment, _targetenchantLevel
+                    )
+                )
+                if expectedGrowthFromEnchantLevel_tuple is None:
+                    # 장비 강화가 불가능한 케이스
+                    continue
+                else:
+                    if (
+                        expectedGrowthFromEnchantLevel_tuple[0]
+                        >= expectedGrowthFromEnchantLevel
+                    ):
+                        expectedGrowthFromEnchantLevel = (
+                            expectedGrowthFromEnchantLevel_tuple[0]
+                        )
+                        # 이쪽은 위가 결정되면 알아서 따라갈듯?
+                        expectedGrowthFromEnchantLevel_enchantlevel = (
+                            _targetenchantLevel
+                        )
+                        expectedGrowthFromEnchantLevel_tryCount = (
+                            expectedGrowthFromEnchantLevel_tuple[1]
+                        )
+            if expectedGrowthFromEnchantLevel >= expectedGrowthFromEquipment:
+                expectedGrowthFromEquipment = expectedGrowthFromEnchantLevel
                 expectedGrowthFromEquipment_equipment = equipment
-
-        return equipment
+        print(
+            expectedGrowthFromEquipment_equipment,
+            expectedGrowthFromEquipment,
+            expectedGrowthFromEnchantLevel_enchantlevel,
+            expectedGrowthFromEnchantLevel_tryCount,
+        )
+        return (
+            expectedGrowthFromEquipment_equipment,
+            expectedGrowthFromEquipment,
+            expectedGrowthFromEnchantLevel_enchantlevel,
+            expectedGrowthFromEnchantLevel_tryCount,
+        )
 
     def runEnchant(self, equipment):
+        print("player run enchant", equipment.key)
         # TODO 인벤토리에서 재화 차감
         # 실제 강화
         equipment.doEnchant()
@@ -110,7 +135,9 @@ class Player:
     def getBattlePoint(self):
         _battlePoint = 0
         for equipment in self.equipment_List:
-            _battlePoint = _battlePoint + equipment.getBattlePoint()
+            _battlePoint = _battlePoint + equipment.getBattlePointOfLevel(
+                equipment.enchantLevel
+            )
         return _battlePoint
 
     def acquire_item(self, item, count):
@@ -143,7 +170,8 @@ class EnchantData:
                     "dd": 0,
                     "pv": 0,
                     "hp": 0,
-                    "success_rate": 0.1,
+                    "success_rate": 0.7,
+                    "success_reward": 1,
                     "failure_penalty": -1,
                     "repair_rate": 0.8,
                     "enchantRecipe": [(1, 1), (1, 1), (1, 1)],
@@ -152,8 +180,9 @@ class EnchantData:
                     "dd": 0,
                     "pv": 0,
                     "hp": 0,
-                    "success_rate": 0.1,
+                    "success_rate": 0.5,
                     "failure_penalty": -1,
+                    "success_reward": 1,
                     "repair_rate": 0.8,
                     "enchantRecipe": [(1, 1), (1, 1), (1, 1)],
                 },
@@ -161,8 +190,9 @@ class EnchantData:
                     "dd": 0,
                     "pv": 0,
                     "hp": 0,
-                    "success_rate": 0.1,
+                    "success_rate": 0.4,
                     "failure_penalty": -1,
+                    "success_reward": 1,
                     "repair_rate": 0.8,
                     "enchantRecipe": [(1, 1), (1, 1), (1, 1)],
                 },
@@ -170,7 +200,8 @@ class EnchantData:
                     "dd": 0,
                     "pv": 0,
                     "hp": 0,
-                    "success_rate": 0.1,
+                    "success_rate": 0.3,
+                    "success_reward": 1,
                     "failure_penalty": -1,
                     "repair_rate": 0.8,
                     "enchantRecipe": [(1, 1), (1, 1), (1, 1)],
@@ -181,57 +212,80 @@ class EnchantData:
 
 # 장비
 class Equipment:
-    equipment_key = ""
+    key = ""
     enchantLevel = 0
     enchantType = "penalty1"
     lowerLimitEnchantLevel = 0
+    upperLimitEnchantLevel = 3
     enchantTable = {}
 
-    def __init__(self, equipment_key, enchantLevel, enchantType, enchantTable):
-        self.equipment_key = equipment_key
+    def __init__(self, key, enchantLevel, enchantType, enchantTable):
+        self.key = key
         self.enchantLevel = enchantLevel
         self.enchantType = enchantType
         self.enchantTable = enchantTable
 
-    # TODO
     def doEnchant(self):
+        print(
+            "now enchant equipment",
+            self.key,
+            "current enchant level : ",
+            self.enchantLevel,
+        )
+        if self.enchantTable[self.enchantLevel]["success_rate"] >= random.random():
+            self.enchantLevel += self.enchantTable[self.enchantLevel]["success_reward"]
+            print("enchant successed. current enchant level : ", self.enchantLevel)
+        else:
+            if (
+                self.enchantLevel
+                + self.enchantTable[self.enchantLevel]["failure_penalty"]
+                >= self.lowerLimitEnchantLevel
+            ):
+                self.enchantLevel += self.enchantTable[self.enchantLevel][
+                    "failure_penalty"
+                ]
+                print("enchant failed. current enchant level : ", self.enchantLevel)
+            else:
+                self.enchantLevel = self.lowerLimitEnchantLevel
+                print("enchant failed. but penaly is limited")
         # 성공 시 강화 단계 상승
         # 실패 시 아무일도 일어나지 않음 또는 강화 단계 하락
-        pass
 
     def getEnchantRecipe(self):
         return self.enchantTable[self.enchantLevel]["enchantRecipe"]
 
     # 시행 횟수 - 강화 확률 토대로 계산
     def calculateExpectedGrowth(self, try_count, targetEnchantLevel):
-        success_Percent = self.enchantTable[targetEnchantLevel - 1]
         _expectedGrowth = 0
         # 강화 결과 성공 시(양수가 나오는) 기대 성장치 합계
         # TODO 강화 성공 한계 치 등록 필요
         # 강화 결과 실패 시(음수가 나오는) 기대 성장치 합계
         # TODO 강화 실패 한계 치 등록 필요
         for _targetEnchantLevel in range(targetEnchantLevel):
-            _expectedGrowth += (
-                self.enchantTable[_targetEnchantLevel]["dd"]
-                + self.enchantTable[_targetEnchantLevel]["pv"]
+            _expectedGrowth = (
+                self.getBattlePointOfLevel(_targetEnchantLevel)
             ) * Calculator.getRateOfReachingEnchantLevel(
                 self.enchantTable,
                 self.enchantLevel,
                 0,
                 try_count,
                 _targetEnchantLevel,
-            ) - self.getBattlePoint()
+            ) - self.getBattlePointOfLevel(
+                self.enchantLevel
+            )
 
         return _expectedGrowth
 
     def isEnchantable(self, player):
+        if self.enchantLevel < self.upperLimitEnchantLevel:
+            return False
         return True
 
     # 외부에서 주어진 테이블 대로
-    def getBattlePoint(self):
+    def getBattlePointOfLevel(self, enchantLevel):
         return (
-            self.enchantTable[self.enchantLevel]["dd"]
-            + self.enchantTable[self.enchantLevel]["pv"]
+            self.enchantTable[enchantLevel]["dd"]
+            + self.enchantTable[enchantLevel]["pv"]
         )
 
 
@@ -248,9 +302,15 @@ class SimulationManager:
     # TODO 외부로 빼기 엑셀 같은 데
     def __init__(self):
         self.huntingField_list = [
-            HuntingField(("item0", 10, 1), ("item1", 13, 1), ("item2", 20, 1)),
-            HuntingField(("item0", 10, 1), ("item1", 13, 1), ("item2", 20, 1)),
-            HuntingField(("item0", 10, 1), ("item1", 13, 1), ("item2", 20, 1)),
+            HuntingField(
+                "huntingfield0", ("item0", 10, 1), ("item1", 13, 1), ("item2", 20, 1)
+            ),
+            HuntingField(
+                "huntingfield1", ("item0", 10, 1), ("item1", 13, 1), ("item2", 20, 1)
+            ),
+            HuntingField(
+                "huntingfield2", ("item0", 10, 1), ("item1", 13, 1), ("item2", 20, 1)
+            ),
         ]
         self.enchantData = EnchantData()
         self.player_List = [
@@ -284,19 +344,26 @@ class SimulationManager:
         print("processTurn")
         for player in self.player_List:
             chosenHuntingField = player.chooseHuntingField(self.huntingField_list)
-            print("player.chooseHuntingField", chosenHuntingField)
+            print("player.chooseHuntingField", chosenHuntingField.key)
             chosenHuntingField.giveItem(player)
-            print("player received Item")
-            player.runEnchant(player.getBestExpectedEnchantEquipment())
+            equipment = player.getBestExpectedEnchantEquipment()[0]
+            if equipment.isEnchantable(player):
+                player.runEnchant(player.getBestExpectedEnchantEquipment()[0])
+            else:
+                pass
             print(player.getBattlePoint())
 
 
 class HuntingField:
     # item, count, rate
-    gaining_list = [("item0", 0, 1), ("item1", 0, 1), ("item2", 0, 1)]
+    key = ""
+    gaining_list = []
     battlePointLimit = 0
 
-    def __init__(self, tuple, tuple1, tuple2):
+    def __init__(self, key, tuple, tuple1, tuple2):
+        self.gaining_list = []
+        self.key = key
+        print("__init__", key, tuple, tuple1, tuple2)
         self.gaining_list.append(tuple)
         self.gaining_list.append(tuple1)
         self.gaining_list.append(tuple2)
@@ -306,10 +373,12 @@ class HuntingField:
 
     def giveItem(self, player):
         # TODO self.gaining_list 에서 적절히 거른 결과물을 지급하자
+        print("gaining_list : ", self.gaining_list)
         for gaining in self.gaining_list:
             # 확률적으로 지급
             if gaining[2] >= random.random():
                 player.acquire_item(gaining[0], gaining[1])
+                print("player received Item", gaining[0], gaining[1], "from", self.key)
             else:
                 continue
 
@@ -325,7 +394,8 @@ class HuntingField:
 
 def __main__():
     simulationManager = SimulationManager()
-    simulationManager.processTurn()
+    for current_turn in range(10):
+        simulationManager.processTurn()
 
 
 __main__()
