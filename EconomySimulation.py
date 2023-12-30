@@ -311,17 +311,30 @@ class SimulationManager:
 
     # TODO 외부로 빼기 엑셀 같은 데
     def __init__(self):
-        self.huntingField_list = [
-            HuntingField(
-                "huntingfield0", ("item0", 10, 1), ("item1", 13, 1), ("item2", 20, 1)
-            ),
-            HuntingField(
-                "huntingfield1", ("item0", 10, 1), ("item1", 13, 1), ("item2", 20, 1)
-            ),
-            HuntingField(
-                "huntingfield2", ("item0", 10, 1), ("item1", 13, 1), ("item2", 20, 1)
-            ),
-        ]
+        huntingField_dict = ExcelImporter.build_huntingFieldData()
+        self.huntingField_list = []
+        for _huntingField_key in huntingField_dict.keys():
+            _huntingField_dict = huntingField_dict[_huntingField_key]
+            self.huntingField_list.append(
+                HuntingField(
+                    _huntingField_key,
+                    (
+                        _huntingField_dict["gaining0"],
+                        _huntingField_dict["count0"],
+                        _huntingField_dict["rate0"],
+                    ),
+                    (
+                        _huntingField_dict["gaining1"],
+                        _huntingField_dict["count1"],
+                        _huntingField_dict["rate1"],
+                    ),
+                    (
+                        _huntingField_dict["gaining2"],
+                        _huntingField_dict["count2"],
+                        _huntingField_dict["rate2"],
+                    ),
+                )
+            )
         self.enchantData = EnchantData()
         player_dict = ExcelImporter.build_playerData()
         for _player in player_dict.keys():

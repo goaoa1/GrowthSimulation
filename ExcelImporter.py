@@ -62,5 +62,9 @@ def build_playerData():
     return build_dict(player_df)
 
 
+def build_huntingFieldData():
+    return build_dict(huntingField_df)
+
+
 # print(build_enchantData())
 # print(build_playerData())
