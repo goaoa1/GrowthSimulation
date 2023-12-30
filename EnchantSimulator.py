@@ -8,11 +8,10 @@ def getBinomialDistribution(
     enchantTable, currentEnchantLevel, lowerLimitEnchantLevel, try_count
 ):
     success_rate = enchantTable[currentEnchantLevel]["success_rate"]
-    failurePenalty = enchantTable[currentEnchantLevel]["failure_penalty"]
-    success_rate = enchantTable[currentEnchantLevel]["success_rate"]
+    failure_penalty = enchantTable[currentEnchantLevel]["failure_penalty"]
     repair_rate = enchantTable[currentEnchantLevel]["repair_rate"]
     # 장비 고유
-    successReward = 1
+    successReward = enchantTable[currentEnchantLevel]["success_reward"]
 
     simulation_count = 1000000
 
@@ -31,7 +30,7 @@ def getBinomialDistribution(
                     # 복구 성공 시 강화가 떨어지지 않는다.
                     continue
                 else:
-                    _currentEnchantLevel += failurePenalty
+                    _currentEnchantLevel += failure_penalty
                     if _currentEnchantLevel < lowerLimitEnchantLevel:
                         _currentEnchantLevel = lowerLimitEnchantLevel
         # print("result enchantLevel : ", _currentEnchantLevel)
@@ -61,7 +60,7 @@ def getRateOfReachingEnchantLevel(
     rateOfReachingEnchantLevel = 0
 
     success_rate = enchantTable[currentEnchantLevel]["success_rate"]
-    failurePenalty = enchantTable[currentEnchantLevel]["failure_penalty"]
+    failure_penalty = enchantTable[currentEnchantLevel]["failure_penalty"]
     success_rate = enchantTable[currentEnchantLevel]["success_rate"]
     repair_rate = enchantTable[currentEnchantLevel]["repair_rate"]
     # 장비 고유
@@ -87,7 +86,7 @@ def getRateOfReachingEnchantLevel(
                     # print("복구 성공!")
                     continue
                 else:
-                    _currentEnchantLevel += failurePenalty
+                    _currentEnchantLevel += failure_penalty
                     if _currentEnchantLevel < lowerLimitEnchantLevel:
                         # print("하한선에 도달하여 더이상 강화 레벨이 내려가지 않습니다.")
                         _currentEnchantLevel = lowerLimitEnchantLevel

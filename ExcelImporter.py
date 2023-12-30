@@ -1,6 +1,6 @@
 import pandas as pd
 
-excel_file_path = "input.xlsx"
+excel_file_path = "Input.xlsx"
 
 player_df = pd.read_excel(excel_file_path, "Player")
 huntingField_df = pd.read_excel(excel_file_path, "HuntingField")
@@ -69,7 +69,7 @@ def build_huntingFieldData():
 def exportToExcel(data):
     df = pd.DataFrame(data)
 
-    df.to_excel("input.xlsx", index=False, sheet_name="Output")
+    df.to_excel("Output.xlsx", index=False, sheet_name="Output")
     return None
 
 
