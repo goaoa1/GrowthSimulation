@@ -23,15 +23,25 @@ class Player:
         # 그 사냥터에서 획득 가능한 재화 찾기
         expectedGrowthFromHuntingField = 0
         expectedGrowthFromHuntingField_huntingField = None
+
+        predicted_item_dict = self.item_dict.copy()
         for huntingField in _enterableHuntingField_List:
-            huntingField.getPredictedGainings()
+            for gaining in huntingField.getPredictedGainings():
+                if gaining[0] in predicted_item_dict:
+                    predicted_item_dict[gaining[0]] += gaining[1]
+                else:
+                    predicted_item_dict[gaining[0]] = gaining[1]
             # 그 사냥터에서 성장할 수 있는 기댓값 찾기(획득 가능한 재화를 획득했다고 쳤을 때 성장 기댓값 계산)
             # 강화 가능한 장비류 수집
-            result = self.getBestExpectedEnchantEquipment()
+            # 예상 획득 재화를 토대로 계산
+            result = self.getBestExpectedEnchantEquipment(predicted_item_dict)
             equipment = result["equipment"]
             expectedGrowth = result["growth"]
             enchantLevel = result["enchantlevel"]
             tryCount = result["tryCount"]
+            if equipment is None:
+                # 강화할 것이 없을 때는 넘긴다.
+                continue
             print(
                 "getBestExpectedEnchantEquipment 결과 : ", result["equipment"].key, result
             )
@@ -45,7 +55,7 @@ class Player:
         return huntingField
 
     def calculateExpectedGrowthFromEquipmentEnchant(
-        self, equipment, targetEnchantLevel
+        self, equipment, targetEnchantLevel, item_dict
     ):
         expectedGrowthFromEquipment = 0
         if not (equipment.isEnchantable(self)):
@@ -56,16 +66,20 @@ class Player:
             return
         # 강화 시도할 개수
         try_count = -1
-        for tuple in equipment.getEnchantRecipe():
+        for tuple in equipment.getEnchantRecipe(equipment.enchantLevel):
             enchantMaterial = tuple[0]
             enchantMaterial_count = tuple[1]
             # 강화 재료 종류 별로 만들 수 있는 값 중 가장 작은 값이 제작할 수 있는 개수다.
-            if enchantMaterial in self.item_dict:
-                _try_count = self.item_dict[enchantMaterial] // enchantMaterial_count
+            if enchantMaterial in item_dict:
+                _try_count = item_dict[enchantMaterial] // enchantMaterial_count
                 if try_count == -1:
                     try_count = _try_count
                 if try_count >= _try_count:
                     try_count = _try_count
+        # TODO trycount 가 0일 때 처리
+        if try_count == 0:
+            return
+
         expectedGrowthFromTryCount = 0
         expectedGrowthFromTryCount_tryCount = 0
         for current_try in range(try_count):
@@ -85,7 +99,7 @@ class Player:
     # 예상 성장치 따져보고 선택한다.
     # 보유한 장비 중 가장 잘 성장할 것 같은 장비를 반환
     # TODO 하나가 아니라 줄 세울까(강화를 두 종류 할 수도 있으니까)
-    def getBestExpectedEnchantEquipment(self):
+    def getBestExpectedEnchantEquipment(self, item_dict):
         expectedGrowthFromEquipment = 0
         expectedGrowthFromEquipment_equipment = None
         expectedGrowthFromEquipment_enchantLevel = 0
@@ -102,12 +116,12 @@ class Player:
             ):
                 expectedGrowthFromEnchantLevel_tuple = (
                     self.calculateExpectedGrowthFromEquipmentEnchant(
-                        equipment, _targetenchantLevel
+                        equipment, _targetenchantLevel, item_dict
                     )
                 )
                 if expectedGrowthFromEnchantLevel_tuple is None:
                     # 장비 강화가 불가능한 케이스
-                    raise Exception("장비 강화가 불가능한 케이스")
+                    # 재료가 모자라서 강화 못하는 케이스
                     continue
                 else:
                     if (
@@ -141,7 +155,12 @@ class Player:
 
     def runEnchant(self, equipment):
         print("player run enchant", equipment.key)
-        # TODO 인벤토리에서 재화 차감
+        print("current player inventory : ", self.item_dict)
+        for tuple in equipment.getEnchantRecipe(equipment.enchantLevel):
+            enchantMaterial = tuple[0]
+            enchantMaterial_count = tuple[1]
+            self.item_dict[enchantMaterial] -= enchantMaterial_count
+        print("current player inventory : ", self.item_dict)
         # 실제 강화
         equipment.doEnchant()
 
@@ -348,8 +367,8 @@ class Equipment:
         # 성공 시 강화 단계 상승
         # 실패 시 아무일도 일어나지 않음 또는 강화 단계 하락
 
-    def getEnchantRecipe(self):
-        return self.enchantTable[self.enchantLevel]["enchantRecipe"]
+    def getEnchantRecipe(self, enchantLevel):
+        return self.enchantTable[enchantLevel]["enchantRecipe"]
 
     # 시행 횟수 - 강화 확률 토대로 계산
     def calculateExpectedGrowth(self, try_count, targetEnchantLevel):
@@ -443,11 +462,22 @@ class SimulationManager:
             chosenHuntingField = player.chooseHuntingField(self.huntingField_list)
             print("player.chooseHuntingField", chosenHuntingField.key)
             chosenHuntingField.giveItem(player)
-            equipment = player.getBestExpectedEnchantEquipment()["equipment"]
-            if equipment.isEnchantable(player):
-                player.runEnchant(player.getBestExpectedEnchantEquipment()["equipment"])
-            else:
-                pass
+            # TODO 강화할 게 없을 때까지 강화시도 한다.
+            while (
+                player.getBestExpectedEnchantEquipment(player.item_dict)["equipment"]
+                is not None
+            ):
+                equipment = player.getBestExpectedEnchantEquipment(player.item_dict)[
+                    "equipment"
+                ]
+                if equipment.isEnchantable(player):
+                    player.runEnchant(
+                        player.getBestExpectedEnchantEquipment(player.item_dict)[
+                            "equipment"
+                        ]
+                    )
+                else:
+                    pass
             for equipment in player.equipment_List:
                 print(equipment.key, equipment.enchantLevel)
             print("player.getBattlePoint()", player.getBattlePoint())
@@ -489,7 +519,7 @@ class HuntingField:
 
 def __main__():
     simulationManager = SimulationManager()
-    for current_turn in range(1):
+    for current_turn in range(5):
         simulationManager.processTurn()
 
 
