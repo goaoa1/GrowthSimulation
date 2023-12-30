@@ -32,7 +32,9 @@ class Player:
             expectedGrowth = result["growth"]
             enchantLevel = result["enchantlevel"]
             tryCount = result["tryCount"]
-            print("getBestExpectedEnchantEquipment 결과 : ", result)
+            print(
+                "getBestExpectedEnchantEquipment 결과 : ", result["equipment"].key, result
+            )
             expectedGrowthFromEquipment = expectedGrowth
             if expectedGrowthFromEquipment >= expectedGrowthFromHuntingField:
                 expectedGrowthFromHuntingField = expectedGrowthFromEquipment
@@ -66,7 +68,6 @@ class Player:
                     try_count = _try_count
         expectedGrowthFromTryCount = 0
         expectedGrowthFromTryCount_tryCount = 0
-        print("try_count : ", try_count)
         for current_try in range(try_count):
             # 몇 회 시도하는 게 최선인지 알 수 없으니 try_count가 n이라면 1~n까지 시도한 경우의 수를 모두 따지고 그중 가장 큰 값을 가져가자!
             targetEnchantLevel = current_try
@@ -121,12 +122,6 @@ class Player:
                         )
                         expectedGrowthFromEnchantLevel_tryCount = (
                             expectedGrowthFromEnchantLevel_tuple[1]
-                        )
-                        print(
-                            "expectedGrowthFromEnchantLevel, expectedGrowthFromEnchantLevel_enchantLevel, expectedGrowthFromEnchantLevel_tryCount : ",
-                            expectedGrowthFromEnchantLevel,
-                            expectedGrowthFromEnchantLevel_enchantLevel,
-                            expectedGrowthFromEnchantLevel_tryCount,
                         )
             if expectedGrowthFromEnchantLevel >= expectedGrowthFromEquipment:
                 expectedGrowthFromEquipment = expectedGrowthFromEnchantLevel
@@ -195,8 +190,8 @@ class EnchantData:
                     "enchantRecipe": [("item0", 1), ("item1", 1), ("item2", 1)],
                 },
                 1: {
-                    "dd": 0,
-                    "pv": 0,
+                    "dd": 1,
+                    "pv": 1,
                     "hp": 0,
                     "success_rate": 0.5,
                     "failure_penalty": -1,
@@ -205,8 +200,8 @@ class EnchantData:
                     "enchantRecipe": [("item0", 1), ("item1", 1), ("item2", 1)],
                 },
                 2: {
-                    "dd": 0,
-                    "pv": 0,
+                    "dd": 2,
+                    "pv": 2,
                     "hp": 0,
                     "success_rate": 0.4,
                     "failure_penalty": -1,
@@ -215,8 +210,8 @@ class EnchantData:
                     "enchantRecipe": [("item0", 1), ("item1", 1), ("item2", 1)],
                 },
                 3: {
-                    "dd": 0,
-                    "pv": 0,
+                    "dd": 3,
+                    "pv": 3,
                     "hp": 0,
                     "success_rate": 0.3,
                     "success_reward": 1,
@@ -363,6 +358,9 @@ class Equipment:
         # TODO 강화 성공 한계 치 등록 필요
         # 강화 결과 실패 시(음수가 나오는) 기대 성장치 합계
         # TODO 강화 실패 한계 치 등록 필요
+        if targetEnchantLevel >= self.upperLimitEnchantLevel:
+            targetEnchantLevel = self.upperLimitEnchantLevel
+
         for _targetEnchantLevel in range(targetEnchantLevel):
             _expectedGrowth = (
                 self.getBattlePointOfLevel(_targetEnchantLevel)
@@ -450,7 +448,9 @@ class SimulationManager:
                 player.runEnchant(player.getBestExpectedEnchantEquipment()["equipment"])
             else:
                 pass
-            print(player.getBattlePoint())
+            for equipment in player.equipment_List:
+                print(equipment.key, equipment.enchantLevel)
+            print("player.getBattlePoint()", player.getBattlePoint())
 
 
 class HuntingField:
@@ -462,10 +462,6 @@ class HuntingField:
     def __init__(self, key, tuple, tuple1, tuple2):
         self.gaining_list = []
         self.key = key
-        print("__init__", key, tuple, tuple1, tuple2)
-        self.gaining_list.append(tuple)
-        self.gaining_list.append(tuple1)
-        self.gaining_list.append(tuple2)
 
     def isPlayerEnterable(self, player):
         return player.getBattlePoint() >= self.battlePointLimit
