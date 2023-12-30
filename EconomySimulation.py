@@ -40,13 +40,18 @@ class Player:
             # 강화 가능한 장비류 수집
             # 예상 획득 재화를 토대로 계산
             result = self.getBestExpectedEnchantEquipment(predicted_item_dict)
-            equipment = result["equipment"]
-            expectedGrowth = result["growth"]
-            enchantLevel = result["enchantlevel"]
-            tryCount = result["tryCount"]
-
-            if equipment is None:
-                # 강화할 것이 없을 때는 넘긴다.
+            # 성장할 수 있을 때만 의미있다.
+            if result["growth"] > 0:
+                equipment = result["equipment"]
+                expectedGrowth = result["growth"]
+                enchantLevel = result["enchantlevel"]
+                tryCount = result["tryCount"]
+            else:
+                print(
+                    "강화의 기댓값이 0 이하이기 때문에 강화하지 않습ㄴ디ㅏ.",
+                    result["equipment"],
+                    result["growth"],
+                )
                 continue
             print(
                 "getBestExpectedEnchantEquipment 결과 : ", result["equipment"].key, result
@@ -60,6 +65,7 @@ class Player:
         # 그 기댓값들의 최대값의 사냥터를 반환
         return huntingField
 
+    # TODO EXPECTEDGRWOTH가 0 아래로 내려가면 그만둔다.
     def calculateExpectedGrowthFromEquipmentEnchant(
         self, equipment, targetEnchantLevel, item_dict
     ):
@@ -454,18 +460,30 @@ class SimulationManager:
             # TODO 강화할 게 없을 때까지 강화시도 한다.
             while True:
                 print("----now find getBestExpectedEnchantEquipment")
+
                 best_enchant_info = player.getBestExpectedEnchantEquipment(
                     player.item_dict
-                )["equipment"]
-                if best_enchant_info is not None:
-                    equipment_key = best_enchant_info.key
-                    enchant_level = best_enchant_info.enchantLevel
+                )
+                growth = best_enchant_info["growth"]
+                if growth > 0:
+                    best_enchant_info_equipment = best_enchant_info["equipment"]
+                else:
+                    print(
+                        "강화 기대 성장치가 0 이하이므로 강화하지 않습니다(선택하지 않습니다.)",
+                        best_enchant_info["equipment"],
+                        best_enchant_info["growth"],
+                    )
+                    break
+                # TODO 리팩토링 필요
+                if best_enchant_info_equipment is not None:
+                    equipment_key = best_enchant_info_equipment.key
+                    enchant_level = best_enchant_info_equipment.enchantLevel
                     print(
                         f"Best Expected Enchant Equipment equipment_key, current enchantLevel: {equipment_key} {enchant_level}"
                     )
 
-                    if best_enchant_info.isEnchantable(player):
-                        player.runEnchant(best_enchant_info)
+                    if best_enchant_info_equipment.isEnchantable(player):
+                        player.runEnchant(best_enchant_info_equipment)
                     else:
                         print("Cannot enchant the selected equipment.")
                 else:
