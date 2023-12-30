@@ -66,5 +66,52 @@ def build_huntingFieldData():
     return build_dict(huntingField_df)
 
 
+def exportToExcel(data):
+    df = pd.DataFrame(data)
+
+    df.to_excel("input.xlsx", index=False, sheet_name="Output")
+    return None
+
+
+class CustomDataFrame:
+    dataFrame = {}
+
+    def __init__(
+        self,
+        turn,
+        player_key,
+        item0,
+        count0,
+        item1,
+        count1,
+        item2,
+        count2,
+        equipment0,
+        equipment_level0,
+        equipment1,
+        equipment_level1,
+        equipment2,
+        equipment_level2,
+    ):
+        self.dataFrame = {}
+        self.dataFrame["turn"] = [turn]
+        self.dataFrame["player_key"] = [player_key]
+        self.dataFrame["item0"] = [item0]
+        self.dataFrame["count0"] = [count0]
+        self.dataFrame["item1"] = [item1]
+        self.dataFrame["count1"] = [count1]
+        self.dataFrame["item2"] = [item2]
+        self.dataFrame["count2"] = [count2]
+        self.dataFrame["equipment0"] = [equipment0]
+        self.dataFrame["equipment_level0"] = [equipment_level0]
+        self.dataFrame["equipment1"] = [equipment1]
+        self.dataFrame["equipment_level1"] = [equipment_level1]
+        self.dataFrame["equipment2"] = [equipment2]
+        self.dataFrame["equipment_level2"] = [equipment_level2]
+
+    def build_dataFrame(self):
+        exportToExcel(self.dataFrame)
+
+
 # print(build_enchantData())
 # print(build_playerData())

@@ -106,12 +106,3 @@ def getRateOfReachingEnchantLevel(
                 # 키가 정렬되어 있으므로 브레이크한다.
                 break
         return rateOfReachingEnchantLevel
-
-
-def findOrderedPair(player, equipment_List):
-    item_dict = player.item_dict
-    equipment_List = equipment_List
-    orderedPair_list = []
-    for equipment in equipment_List:
-        enchantLevel = equipment.enchantLevel
-        enchantTable = equipment.enchantTable

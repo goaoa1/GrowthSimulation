@@ -2,17 +2,20 @@ from math import comb
 import random
 import EnchantSimulator
 import ExcelImporter
+from ExcelImporter import CustomDataFrame
 
 
 class Player:
     # 인벤토리
     # key : count
+    key = ""
     item_dict = {}
-    equipment_List = []
+    equipment_list = []
 
-    def __init__(self, item_dict, equipment_List):
+    def __init__(self, key, item_dict, equipment_list):
+        self.key = key
         self.item_dict = item_dict
-        self.equipment_List = equipment_List
+        self.equipment_list = equipment_list
 
     def chooseHuntingField(self, huntingField_list):
         # 사용 가능한 사냥터 찾기
@@ -40,13 +43,7 @@ class Player:
             expectedGrowth = result["growth"]
             enchantLevel = result["enchantlevel"]
             tryCount = result["tryCount"]
-            # print(
-            #     "최선의 강화 장비 : equipment.key, expectedGrowth, enchantLevel, tryCount",
-            #     equipment.key,
-            #     expectedGrowth,
-            #     enchantLevel,
-            #     tryCount,
-            # )
+
             if equipment is None:
                 # 강화할 것이 없을 때는 넘긴다.
                 continue
@@ -112,7 +109,7 @@ class Player:
         expectedGrowthFromEquipment_equipment = None
         expectedGrowthFromEquipment_enchantLevel = 0
         expectedGrowthFromEquipment_tryCount = 0
-        for equipment in self.equipment_List:
+        for equipment in self.equipment_list:
             if not (equipment.isEnchantable(self)):
                 continue
             expectedGrowthFromEnchantLevel = 0
@@ -180,7 +177,7 @@ class Player:
 
     def getBattlePoint(self):
         _battlePoint = 0
-        for equipment in self.equipment_List:
+        for equipment in self.equipment_list:
             _battlePoint = _battlePoint + equipment.getBattlePointOfLevel(
                 equipment.enchantLevel
             )
@@ -340,6 +337,7 @@ class SimulationManager:
         for _player in player_dict.keys():
             _player_dict = player_dict[_player]
             player = Player(
+                _player,
                 {
                     _player_dict["item0"]: _player_dict["count0"],
                     _player_dict["item1"]: _player_dict["count1"],
@@ -366,9 +364,8 @@ class SimulationManager:
             self.player_List = []
             self.player_List.append(player)
 
-    def processTurn(self):
+    def processTurn(self, turn):
         # n회 루프하도록 한다.
-        print("processTurn")
         for player in self.player_List:
             chosenHuntingField = player.chooseHuntingField(self.huntingField_list)
             print("player.chooseHuntingField", chosenHuntingField.key)
@@ -394,9 +391,41 @@ class SimulationManager:
                     )
                 else:
                     continue
-            for equipment in player.equipment_List:
-                print(equipment.key, equipment.enchantLevel)
-            print("player.getBattlePoint()", player.getBattlePoint())
+
+            # log
+
+            _player_key = player.key
+            _item0 = list(player.item_dict.items())[0][0]
+            _count0 = list(player.item_dict.items())[0][1]
+            _item1 = list(player.item_dict.items())[1][0]
+            _count1 = list(player.item_dict.items())[1][1]
+            _item2 = list(player.item_dict.items())[2][0]
+            _count2 = list(player.item_dict.items())[2][1]
+            _equipment0 = player.equipment_list[0].key
+            _equipment_level0 = player.equipment_list[0].enchantLevel
+            _equipment1 = player.equipment_list[1].key
+            _equipment_level1 = player.equipment_list[1].enchantLevel
+            _equipment2 = player.equipment_list[2].key
+            _equipment_level2 = player.equipment_list[2].enchantLevel
+
+            customDataFrame = CustomDataFrame(
+                turn,
+                _player_key,
+                _item0,
+                _count0,
+                _item1,
+                _count1,
+                _item2,
+                _count2,
+                _equipment0,
+                _equipment_level0,
+                _equipment1,
+                _equipment_level1,
+                _equipment2,
+                _equipment_level2,
+            )
+
+            customDataFrame.build_dataFrame()
 
 
 class HuntingField:
@@ -437,7 +466,7 @@ def __main__():
     simulationManager = SimulationManager()
     for current_turn in range(1):
         print("--------------------------------------current_turn : ", current_turn)
-        simulationManager.processTurn()
+        simulationManager.processTurn(current_turn)
 
 
 __main__()
