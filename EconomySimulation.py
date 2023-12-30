@@ -30,6 +30,7 @@ class Player:
 
         predicted_item_dict = self.item_dict.copy()
         for huntingField in _enterableHuntingField_List:
+            print(" ------ choosing Hunting Field : ", huntingField.key)
             for gaining in huntingField.getPredictedGainings():
                 if gaining[0] in predicted_item_dict:
                     predicted_item_dict[gaining[0]] += gaining[1]
@@ -81,17 +82,38 @@ class Player:
                     try_count = _try_count
                 if try_count >= _try_count:
                     try_count = _try_count
+        print("try_count", try_count)
+
+        if (
+            equipment.enchantLevel
+            + try_count
+            * equipment.enchantTable[equipment.enchantLevel]["success_reward"]
+            < targetEnchantLevel
+        ):
+            #  불가능한 케이스이므로 리턴
+            print("모든 강화를 성공하더라도 목표 강화 레벨에 도달할 수 없습니다.")
+            return
+
         # TODO trycount 가 0일 때 처리
         if try_count == 0:
             return
-
         expectedGrowthFromTryCount = 0
         expectedGrowthFromTryCount_tryCount = 0
         for current_try in range(try_count):
             # 몇 회 시도하는 게 최선인지 알 수 없으니 try_count가 n이라면 1~n까지 시도한 경우의 수를 모두 따지고 그중 가장 큰 값을 가져가자!
+            # index 가 0 부터 시작하므로 오프셋으로서 1을 더해준다
+            current_try += 1
+            print("current_try", current_try)
             targetEnchantLevel = current_try
             current_expectedGrowth = equipment.calculateExpectedGrowth(
                 current_try, targetEnchantLevel
+            )
+            print(
+                "current_expectedGrowth, equipment, targetEnchantLevel, current_try : ",
+                current_expectedGrowth,
+                equipment.key,
+                targetEnchantLevel,
+                current_try,
             )
             if current_expectedGrowth >= expectedGrowthFromTryCount:
                 expectedGrowthFromTryCount = current_expectedGrowth
@@ -115,9 +137,11 @@ class Player:
             expectedGrowthFromEnchantLevel = 0
             expectedGrowthFromEnchantLevel_enchantLevel = 0
             expectedGrowthFromEnchantLevel_tryCount = 0
+            # TODO trycount 가 1인데 밑 리스트 크기가 2이상이면 불가능한 상황이다. 해결 필요
             for _targetenchantLevel in range(
                 equipment.enchantLevel + 1, equipment.upperLimitEnchantLevel
             ):
+                print("_targetenchantLevel", _targetenchantLevel)
                 expectedGrowthFromEnchantLevel_tuple = (
                     self.calculateExpectedGrowthFromEquipmentEnchant(
                         equipment, _targetenchantLevel, item_dict
@@ -126,8 +150,13 @@ class Player:
                 if expectedGrowthFromEnchantLevel_tuple is None:
                     # 장비 강화가 불가능한 케이스
                     # 재료가 모자라서 강화 못하는 케이스
+                    # 현실적으로 불가능한 케이스
                     continue
                 else:
+                    print(
+                        "expectedGrowthFromEnchantLevel_tuple",
+                        expectedGrowthFromEnchantLevel_tuple,
+                    )
                     if (
                         expectedGrowthFromEnchantLevel_tuple[0]
                         >= expectedGrowthFromEnchantLevel
@@ -260,21 +289,40 @@ class Equipment:
         # TODO 강화 성공 한계 치 등록 필요
         # 강화 결과 실패 시(음수가 나오는) 기대 성장치 합계
         # TODO 강화 실패 한계 치 등록 필요
+        print(
+            "targetEnchantLevel, self.upperLimitEnchantLevel",
+            targetEnchantLevel,
+            self.upperLimitEnchantLevel,
+        )
         if targetEnchantLevel >= self.upperLimitEnchantLevel:
             targetEnchantLevel = self.upperLimitEnchantLevel
-
+        print("targetEnchantLevel", targetEnchantLevel)
         for _targetEnchantLevel in range(targetEnchantLevel):
-            _expectedGrowth = (
-                self.getBattlePointOfLevel(_targetEnchantLevel)
-            ) * EnchantSimulator.getRateOfReachingEnchantLevel(
+            # 인덱스가 0 부터 시작하므로 1을 더해준다.
+            _targetEnchantLevel += +1
+            print("_targetEnchantLevel", _targetEnchantLevel)
+            rateOfReachingEnchantLevel = EnchantSimulator.getRateOfReachingEnchantLevel(
                 self.enchantTable,
                 self.enchantLevel,
                 0,
                 try_count,
                 _targetEnchantLevel,
-            ) - self.getBattlePointOfLevel(
+            )
+            print("rateOfReachingEnchantLevel", rateOfReachingEnchantLevel)
+            _expectedGrowth = (
+                self.getBattlePointOfLevel(_targetEnchantLevel)
+            ) * rateOfReachingEnchantLevel - self.getBattlePointOfLevel(
                 self.enchantLevel
             )
+            print(
+                "self.getBattlePointOfLevel(_targetEnchantLevel)",
+                self.getBattlePointOfLevel(_targetEnchantLevel),
+            )
+            print(
+                "self.getBattlePointOfLevel(self.enchantLevel)",
+                self.getBattlePointOfLevel(self.enchantLevel),
+            )
+            print("_expectedGrowth", _expectedGrowth)
 
         return _expectedGrowth
 
@@ -404,26 +452,25 @@ class SimulationManager:
             print("player.chooseHuntingField", chosenHuntingField.key)
             chosenHuntingField.giveItem(player)
             # TODO 강화할 게 없을 때까지 강화시도 한다.
-            while (
-                player.getBestExpectedEnchantEquipment(player.item_dict)["equipment"]
-                is not None
-            ):
-                equipment = player.getBestExpectedEnchantEquipment(player.item_dict)[
-                    "equipment"
-                ]
-                print(
-                    "best Expected Enchant Equipment : ",
-                    equipment.key,
-                    equipment.enchantLevel,
-                )
-                if equipment.isEnchantable(player):
-                    player.runEnchant(
-                        player.getBestExpectedEnchantEquipment(player.item_dict)[
-                            "equipment"
-                        ]
+            while True:
+                print("----now find getBestExpectedEnchantEquipment")
+                best_enchant_info = player.getBestExpectedEnchantEquipment(
+                    player.item_dict
+                )["equipment"]
+                if best_enchant_info is not None:
+                    equipment_key = best_enchant_info.key
+                    enchant_level = best_enchant_info.enchantLevel
+                    print(
+                        f"Best Expected Enchant Equipment equipment_key, current enchantLevel: {equipment_key} {enchant_level}"
                     )
+
+                    if best_enchant_info.isEnchantable(player):
+                        player.runEnchant(best_enchant_info)
+                    else:
+                        print("Cannot enchant the selected equipment.")
                 else:
-                    continue
+                    print("No more enchantable equipment with expected growth.")
+                    break
 
             # TODO 좀더 똑똑하게
             _player_key = player.key
@@ -462,7 +509,7 @@ def __main__():
     simulationManager = SimulationManager()
     customDataFrame = CustomDataFrame()
     for current_turn in range(10):
-        print("--------------------------------------current_turn : ", current_turn)
+        print("----------------- ---------------------current_turn : ", current_turn)
         simulationManager.processTurn(current_turn, customDataFrame)
     customDataFrame.exportToExcel()
 
