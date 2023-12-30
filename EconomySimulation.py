@@ -1,6 +1,7 @@
 from math import comb
 import random
 import EnchantSimulator
+import ExcelImporter
 
 
 class Player:
@@ -209,134 +210,135 @@ class EnchantData:
     enchantTable = {}
 
     def __init__(self):
-        self.enchantTable = {
-            "equipment0": {
-                0: {
-                    "dd": 0,
-                    "pv": 0,
-                    "hp": 0,
-                    "success_rate": 0.7,
-                    "success_reward": 1,
-                    "failure_penalty": -1,
-                    "repair_rate": 0.8,
-                    "enchantRecipe": [("item0", 1), ("item1", 1), ("item2", 1)],
-                },
-                1: {
-                    "dd": 1,
-                    "pv": 1,
-                    "hp": 0,
-                    "success_rate": 0.5,
-                    "failure_penalty": -1,
-                    "success_reward": 1,
-                    "repair_rate": 0.8,
-                    "enchantRecipe": [("item0", 1), ("item1", 1), ("item2", 1)],
-                },
-                2: {
-                    "dd": 2,
-                    "pv": 2,
-                    "hp": 0,
-                    "success_rate": 0.4,
-                    "failure_penalty": -1,
-                    "success_reward": 1,
-                    "repair_rate": 0.8,
-                    "enchantRecipe": [("item0", 1), ("item1", 1), ("item2", 1)],
-                },
-                3: {
-                    "dd": 3,
-                    "pv": 3,
-                    "hp": 0,
-                    "success_rate": 0.3,
-                    "success_reward": 1,
-                    "failure_penalty": -1,
-                    "repair_rate": 0.8,
-                    "enchantRecipe": [("item0", 1), ("item1", 1), ("item2", 1)],
-                },
-            },
-            "equipment1": {
-                0: {
-                    "dd": 0,
-                    "pv": 0,
-                    "hp": 0,
-                    "success_rate": 0.7,
-                    "success_reward": 1,
-                    "failure_penalty": -1,
-                    "repair_rate": 0.8,
-                    "enchantRecipe": [("item0", 1), ("item1", 1), ("item2", 1)],
-                },
-                1: {
-                    "dd": 0,
-                    "pv": 0,
-                    "hp": 0,
-                    "success_rate": 0.5,
-                    "failure_penalty": -1,
-                    "success_reward": 1,
-                    "repair_rate": 0.8,
-                    "enchantRecipe": [("item0", 1), ("item1", 1), ("item2", 1)],
-                },
-                2: {
-                    "dd": 0,
-                    "pv": 0,
-                    "hp": 0,
-                    "success_rate": 0.4,
-                    "failure_penalty": -1,
-                    "success_reward": 1,
-                    "repair_rate": 0.8,
-                    "enchantRecipe": [("item0", 1), ("item1", 1), ("item2", 1)],
-                },
-                3: {
-                    "dd": 0,
-                    "pv": 0,
-                    "hp": 0,
-                    "success_rate": 0.3,
-                    "success_reward": 1,
-                    "failure_penalty": -1,
-                    "repair_rate": 0.8,
-                    "enchantRecipe": [("item0", 1), ("item1", 1), ("item2", 1)],
-                },
-            },
-            "equipment2": {
-                0: {
-                    "dd": 0,
-                    "pv": 0,
-                    "hp": 0,
-                    "success_rate": 0.7,
-                    "success_reward": 1,
-                    "failure_penalty": -1,
-                    "repair_rate": 0.8,
-                    "enchantRecipe": [("item0", 1), ("item1", 1), ("item2", 1)],
-                },
-                1: {
-                    "dd": 0,
-                    "pv": 0,
-                    "hp": 0,
-                    "success_rate": 0.5,
-                    "failure_penalty": -1,
-                    "success_reward": 1,
-                    "repair_rate": 0.8,
-                    "enchantRecipe": [("item0", 1), ("item1", 1), ("item2", 1)],
-                },
-                2: {
-                    "dd": 0,
-                    "pv": 0,
-                    "hp": 0,
-                    "success_rate": 0.4,
-                    "failure_penalty": -1,
-                    "success_reward": 1,
-                    "repair_rate": 0.8,
-                    "enchantRecipe": [("item0", 1), ("item1", 1), ("item2", 1)],
-                },
-                3: {
-                    "dd": 0,
-                    "pv": 0,
-                    "hp": 0,
-                    "success_rate": 0.3,
-                    "success_reward": 1,
-                    "failure_penalty": -1,
-                    "repair_rate": 0.8,
-                    "enchantRecipe": [("item0", 1), ("item1", 1), ("item2", 1)],
-                },
-            },
-        }
+        # self.enchantTable = {
+        #     "equipment0": {
+        #         0: {
+        #             "dd": 0,
+        #             "pv": 0,
+        #             "hp": 0,
+        #             "success_rate": 0.7,
+        #             "success_reward": 1,
+        #             "failure_penalty": -1,
+        #             "repair_rate": 0.8,
+        #             "enchantRecipe": [("item0", 1), ("item1", 1), ("item2", 1)],
+        #         },
+        #         1: {
+        #             "dd": 1,
+        #             "pv": 1,
+        #             "hp": 0,
+        #             "success_rate": 0.5,
+        #             "failure_penalty": -1,
+        #             "success_reward": 1,
+        #             "repair_rate": 0.8,
+        #             "enchantRecipe": [("item0", 1), ("item1", 1), ("item2", 1)],
+        #         },
+        #         2: {
+        #             "dd": 2,
+        #             "pv": 2,
+        #             "hp": 0,
+        #             "success_rate": 0.4,
+        #             "failure_penalty": -1,
+        #             "success_reward": 1,
+        #             "repair_rate": 0.8,
+        #             "enchantRecipe": [("item0", 1), ("item1", 1), ("item2", 1)],
+        #         },
+        #         3: {
+        #             "dd": 3,
+        #             "pv": 3,
+        #             "hp": 0,
+        #             "success_rate": 0.3,
+        #             "success_reward": 1,
+        #             "failure_penalty": -1,
+        #             "repair_rate": 0.8,
+        #             "enchantRecipe": [("item0", 1), ("item1", 1), ("item2", 1)],
+        #         },
+        #     },
+        #     "equipment1": {
+        #         0: {
+        #             "dd": 0,
+        #             "pv": 0,
+        #             "hp": 0,
+        #             "success_rate": 0.7,
+        #             "success_reward": 1,
+        #             "failure_penalty": -1,
+        #             "repair_rate": 0.8,
+        #             "enchantRecipe": [("item0", 1), ("item1", 1), ("item2", 1)],
+        #         },
+        #         1: {
+        #             "dd": 0,
+        #             "pv": 0,
+        #             "hp": 0,
+        #             "success_rate": 0.5,
+        #             "failure_penalty": -1,
+        #             "success_reward": 1,
+        #             "repair_rate": 0.8,
+        #             "enchantRecipe": [("item0", 1), ("item1", 1), ("item2", 1)],
+        #         },
+        #         2: {
+        #             "dd": 0,
+        #             "pv": 0,
+        #             "hp": 0,
+        #             "success_rate": 0.4,
+        #             "failure_penalty": -1,
+        #             "success_reward": 1,
+        #             "repair_rate": 0.8,
+        #             "enchantRecipe": [("item0", 1), ("item1", 1), ("item2", 1)],
+        #         },
+        #         3: {
+        #             "dd": 0,
+        #             "pv": 0,
+        #             "hp": 0,
+        #             "success_rate": 0.3,
+        #             "success_reward": 1,
+        #             "failure_penalty": -1,
+        #             "repair_rate": 0.8,
+        #             "enchantRecipe": [("item0", 1), ("item1", 1), ("item2", 1)],
+        #         },
+        #     },
+        #     "equipment2": {
+        #         0: {
+        #             "dd": 0,
+        #             "pv": 0,
+        #             "hp": 0,
+        #             "success_rate": 0.7,
+        #             "success_reward": 1,
+        #             "failure_penalty": -1,
+        #             "repair_rate": 0.8,
+        #             "enchantRecipe": [("item0", 1), ("item1", 1), ("item2", 1)],
+        #         },
+        #         1: {
+        #             "dd": 0,
+        #             "pv": 0,
+        #             "hp": 0,
+        #             "success_rate": 0.5,
+        #             "failure_penalty": -1,
+        #             "success_reward": 1,
+        #             "repair_rate": 0.8,
+        #             "enchantRecipe": [("item0", 1), ("item1", 1), ("item2", 1)],
+        #         },
+        #         2: {
+        #             "dd": 0,
+        #             "pv": 0,
+        #             "hp": 0,
+        #             "success_rate": 0.4,
+        #             "failure_penalty": -1,
+        #             "success_reward": 1,
+        #             "repair_rate": 0.8,
+        #             "enchantRecipe": [("item0", 1), ("item1", 1), ("item2", 1)],
+        #         },
+        #         3: {
+        #             "dd": 0,
+        #             "pv": 0,
+        #             "hp": 0,
+        #             "success_rate": 0.3,
+        #             "success_reward": 1,
+        #             "failure_penalty": -1,
+        #             "repair_rate": 0.8,
+        #             "enchantRecipe": [("item0", 1), ("item1", 1), ("item2", 1)],
+        #         },
+        #     },
+        # }
+        self.enchantTable = ExcelImporter.build_enchantData()
 
 
 # 장비
@@ -491,6 +493,11 @@ class SimulationManager:
                 equipment = player.getBestExpectedEnchantEquipment(player.item_dict)[
                     "equipment"
                 ]
+                print(
+                    "best Expected Enchant Equipment : ",
+                    equipment.key,
+                    equipment.enchantLevel,
+                )
                 if equipment.isEnchantable(player):
                     player.runEnchant(
                         player.getBestExpectedEnchantEquipment(player.item_dict)[
@@ -541,7 +548,7 @@ class HuntingField:
 def __main__():
     simulationManager = SimulationManager()
     for current_turn in range(1):
-        print("current_turn : ", current_turn)
+        print("--------------------------------------current_turn : ", current_turn)
         simulationManager.processTurn()
 
 

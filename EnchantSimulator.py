@@ -58,6 +58,8 @@ def getRateOfReachingEnchantLevel(
     max_try_count,
     targetEnchantLevel,
 ):
+    rateOfReachingEnchantLevel = 0
+
     success_rate = enchantTable[currentEnchantLevel]["success_rate"]
     failurePenalty = enchantTable[currentEnchantLevel]["failure_penalty"]
     success_rate = enchantTable[currentEnchantLevel]["success_rate"]
@@ -65,7 +67,7 @@ def getRateOfReachingEnchantLevel(
     # 장비 고유
     successReward = 1
 
-    simulation_count = 1000000
+    simulation_count = 2
 
     result_table = {}
 
@@ -82,10 +84,12 @@ def getRateOfReachingEnchantLevel(
                 tempRandom = random.random()
                 if repair_rate >= tempRandom:
                     # 복구 성공 시 강화가 떨어지지 않는다.
+                    # print("복구 성공!")
                     continue
                 else:
                     _currentEnchantLevel += failurePenalty
                     if _currentEnchantLevel < lowerLimitEnchantLevel:
+                        # print("하한선에 도달하여 더이상 강화 레벨이 내려가지 않습니다.")
                         _currentEnchantLevel = lowerLimitEnchantLevel
         # print("result enchantLevel : ", _currentEnchantLevel)
         # 결과 기록
@@ -93,5 +97,21 @@ def getRateOfReachingEnchantLevel(
             result_table[_currentEnchantLevel] = result_table[_currentEnchantLevel] + 1
         else:
             result_table[_currentEnchantLevel] = 1
-    print(result_table.items())
-    input()
+
+        sorted_keys = sorted(result_table.keys())
+        for enchantLevel in sorted_keys:
+            if enchantLevel <= targetEnchantLevel:
+                rateOfReachingEnchantLevel += result_table[enchantLevel]
+            else:
+                # 키가 정렬되어 있으므로 브레이크한다.
+                break
+        return rateOfReachingEnchantLevel
+
+
+def findOrderedPair(player, equipment_List):
+    item_dict = player.item_dict
+    equipment_List = equipment_List
+    orderedPair_list = []
+    for equipment in equipment_List:
+        enchantLevel = equipment.enchantLevel
+        enchantTable = equipment.enchantTable
