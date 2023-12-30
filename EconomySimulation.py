@@ -39,6 +39,13 @@ class Player:
             expectedGrowth = result["growth"]
             enchantLevel = result["enchantlevel"]
             tryCount = result["tryCount"]
+            # print(
+            #     "최선의 강화 장비 : equipment.key, expectedGrowth, enchantLevel, tryCount",
+            #     equipment.key,
+            #     expectedGrowth,
+            #     enchantLevel,
+            #     tryCount,
+            # )
             if equipment is None:
                 # 강화할 것이 없을 때는 넘긴다.
                 continue
@@ -105,8 +112,7 @@ class Player:
         expectedGrowthFromEquipment_enchantLevel = 0
         expectedGrowthFromEquipment_tryCount = 0
         for equipment in self.equipment_List:
-            if equipment.enchantLevel == equipment.upperLimitEnchantLevel:
-                print("현재 장비 강화 레벨이 강화 한계치와 동일하므로 패스합니다.")
+            if not (equipment.isEnchantable(self)):
                 continue
             expectedGrowthFromEnchantLevel = 0
             expectedGrowthFromEnchantLevel_enchantLevel = 0
@@ -154,12 +160,19 @@ class Player:
         }
 
     def runEnchant(self, equipment):
+        # 인벤토리에서 재화 차감
         print("player run enchant", equipment.key)
         print("current player inventory : ", self.item_dict)
         for tuple in equipment.getEnchantRecipe(equipment.enchantLevel):
             enchantMaterial = tuple[0]
             enchantMaterial_count = tuple[1]
-            self.item_dict[enchantMaterial] -= enchantMaterial_count
+            if self.item_dict[enchantMaterial] < enchantMaterial_count:
+                # 강화에 필요한 재화가 모자라는 경우
+                print("강화에 필요한 재화가 모자랍니다.")
+                raise Exception("isenchantable 에서 검증했을 텐데 왜 또 걸릴까")
+                return
+            else:
+                self.item_dict[enchantMaterial] -= enchantMaterial_count
         print("current player inventory : ", self.item_dict)
         # 실제 강화
         equipment.doEnchant()
@@ -396,10 +409,18 @@ class Equipment:
         return _expectedGrowth
 
     def isEnchantable(self, player):
-        if self.enchantLevel < self.upperLimitEnchantLevel:
-            return True
-        else:
+        # 강화 한계치보다 강화가 같거나 높은지
+        if self.enchantLevel >= self.upperLimitEnchantLevel:
             return False
+        # 재료가 충분히 있는지
+        for tuple in self.getEnchantRecipe(self.enchantLevel):
+            enchantMaterial = tuple[0]
+            enchantMaterial_count = tuple[1]
+            if player.item_dict[enchantMaterial] < enchantMaterial_count:
+                # 강화에 필요한 재화가 모자라는 경우
+                print("강화에 필요한 재화가 모자랍니다.")
+                return False
+        return True
 
     # 외부에서 주어진 테이블 대로
     def getBattlePointOfLevel(self, enchantLevel):
@@ -477,7 +498,7 @@ class SimulationManager:
                         ]
                     )
                 else:
-                    pass
+                    continue
             for equipment in player.equipment_List:
                 print(equipment.key, equipment.enchantLevel)
             print("player.getBattlePoint()", player.getBattlePoint())
@@ -519,7 +540,8 @@ class HuntingField:
 
 def __main__():
     simulationManager = SimulationManager()
-    for current_turn in range(5):
+    for current_turn in range(1):
+        print("current_turn : ", current_turn)
         simulationManager.processTurn()
 
 
