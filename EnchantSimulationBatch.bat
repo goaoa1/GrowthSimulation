@@ -1,0 +1,2 @@
+py EnchantSimulation.py
+pause

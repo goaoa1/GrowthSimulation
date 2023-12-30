@@ -1,5 +1,6 @@
 import pandas as pd
-import ast
+import copy
+
 
 excel_file_path = "input.xlsx"
 
@@ -27,19 +28,14 @@ def build_dict(dataFrame):
         for col in dataFrame.columns:
             if col == "enchantRecipe":
                 temp_list = selectedRow[col].split(" ")
-                print("temp_list", temp_list)
                 result_tuple = [
                     (temp_list[i], int(temp_list[i + 1]))
                     for i in range(0, len(temp_list), 2)
                 ]
-                # for index, _ in enumerate(temp_list):
-                #     print()
                 rv_dict[key_value][level_value][col] = result_tuple
-
-            if col not in ["key", "level"]:
+            elif col not in ["key", "level"]:
                 rv_dict[key_value][level_value][col] = selectedRow[col]
 
-    print(type(rv_dict["equipment0"][0]["enchantRecipe"]))
     return rv_dict
 
 
