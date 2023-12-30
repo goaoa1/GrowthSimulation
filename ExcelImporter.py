@@ -66,17 +66,28 @@ def build_huntingFieldData():
     return build_dict(huntingField_df)
 
 
-def exportToExcel(data):
-    df = pd.DataFrame(data)
-
-    df.to_excel("Output.xlsx", index=False, sheet_name="Output")
-    return None
-
-
 class CustomDataFrame:
     dataFrame = {}
 
-    def __init__(
+    def __init__(self):
+        self.dataFrame = {}
+        # TODO 매턴 데이터 누적되게
+        self.dataFrame["turn"] = []
+        self.dataFrame["player_key"] = []
+        self.dataFrame["item0"] = []
+        self.dataFrame["count0"] = []
+        self.dataFrame["item1"] = []
+        self.dataFrame["count1"] = []
+        self.dataFrame["item2"] = []
+        self.dataFrame["count2"] = []
+        self.dataFrame["equipment0"] = []
+        self.dataFrame["equipment_level0"] = []
+        self.dataFrame["equipment1"] = []
+        self.dataFrame["equipment_level1"] = []
+        self.dataFrame["equipment2"] = []
+        self.dataFrame["equipment_level2"] = []
+
+    def build_dataFrame(
         self,
         turn,
         player_key,
@@ -93,24 +104,26 @@ class CustomDataFrame:
         equipment2,
         equipment_level2,
     ):
-        self.dataFrame = {}
-        self.dataFrame["turn"] = [turn]
-        self.dataFrame["player_key"] = [player_key]
-        self.dataFrame["item0"] = [item0]
-        self.dataFrame["count0"] = [count0]
-        self.dataFrame["item1"] = [item1]
-        self.dataFrame["count1"] = [count1]
-        self.dataFrame["item2"] = [item2]
-        self.dataFrame["count2"] = [count2]
-        self.dataFrame["equipment0"] = [equipment0]
-        self.dataFrame["equipment_level0"] = [equipment_level0]
-        self.dataFrame["equipment1"] = [equipment1]
-        self.dataFrame["equipment_level1"] = [equipment_level1]
-        self.dataFrame["equipment2"] = [equipment2]
-        self.dataFrame["equipment_level2"] = [equipment_level2]
+        self.dataFrame["turn"].append(turn)
+        self.dataFrame["player_key"].append(player_key)
+        self.dataFrame["item0"].append(item0)
+        self.dataFrame["count0"].append(count0)
+        self.dataFrame["item1"].append(item1)
+        self.dataFrame["count1"].append(count1)
+        self.dataFrame["item2"].append(item2)
+        self.dataFrame["count2"].append(count2)
+        self.dataFrame["equipment0"].append(equipment0)
+        self.dataFrame["equipment_level0"].append(equipment_level0)
+        self.dataFrame["equipment1"].append(equipment1)
+        self.dataFrame["equipment_level1"].append(equipment_level1)
+        self.dataFrame["equipment2"].append(equipment2)
+        self.dataFrame["equipment_level2"].append(equipment_level2)
 
-    def build_dataFrame(self):
-        exportToExcel(self.dataFrame)
+    def exportToExcel(self):
+        df = pd.DataFrame(self.dataFrame)
+
+        df.to_excel("Output.xlsx", index=False, sheet_name="Output")
+        return None
 
 
 # print(build_enchantData())

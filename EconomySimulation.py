@@ -300,13 +300,46 @@ class Equipment:
         )
 
 
+class HuntingField:
+    # item, count, rate
+    key = ""
+    gaining_list = []
+    battlePointLimit = 0
+
+    def __init__(self, key, tuple, tuple1, tuple2):
+        self.gaining_list = [tuple, tuple1, tuple2]
+        self.key = key
+
+    def isPlayerEnterable(self, player):
+        return player.getBattlePoint() >= self.battlePointLimit
+
+    def giveItem(self, player):
+        # TODO self.gaining_list 에서 적절히 거른 결과물을 지급하자
+        print("gaining_list : ", self.gaining_list)
+        for gaining in self.gaining_list:
+            # 확률적으로 지급
+            if gaining[2] >= random.random():
+                player.acquire_item(gaining[0], gaining[1])
+                print("player received Item", gaining[0], gaining[1], "from", self.key)
+            else:
+                continue
+
+    # itemkey, expectedcount 쌍 리스트 반환
+    def getPredictedGainings(self):
+        rv_list = []
+        for gaining in self.gaining_list:
+            # itemkey, itemcount * rate
+            rv_list.append((gaining[0], gaining[1] * gaining[2]))
+
+        return rv_list
+
+
 class SimulationManager:
     currentTurn = 0
     player_List = None
     huntingField_list = []
     enchantData = {}
 
-    # TODO 외부로 빼기 엑셀 같은 데
     def __init__(self):
         huntingField_dict = ExcelImporter.build_huntingFieldData()
         self.huntingField_list = []
@@ -364,7 +397,7 @@ class SimulationManager:
             self.player_List = []
             self.player_List.append(player)
 
-    def processTurn(self, turn):
+    def processTurn(self, turn, customDataFrame):
         # n회 루프하도록 한다.
         for player in self.player_List:
             chosenHuntingField = player.chooseHuntingField(self.huntingField_list)
@@ -392,8 +425,7 @@ class SimulationManager:
                 else:
                     continue
 
-            # log
-
+            # TODO 좀더 똑똑하게
             _player_key = player.key
             _item0 = list(player.item_dict.items())[0][0]
             _count0 = list(player.item_dict.items())[0][1]
@@ -408,7 +440,7 @@ class SimulationManager:
             _equipment2 = player.equipment_list[2].key
             _equipment_level2 = player.equipment_list[2].enchantLevel
 
-            customDataFrame = CustomDataFrame(
+            customDataFrame.build_dataFrame(
                 turn,
                 _player_key,
                 _item0,
@@ -425,48 +457,14 @@ class SimulationManager:
                 _equipment_level2,
             )
 
-            customDataFrame.build_dataFrame()
-
-
-class HuntingField:
-    # item, count, rate
-    key = ""
-    gaining_list = []
-    battlePointLimit = 0
-
-    def __init__(self, key, tuple, tuple1, tuple2):
-        self.gaining_list = []
-        self.key = key
-
-    def isPlayerEnterable(self, player):
-        return player.getBattlePoint() >= self.battlePointLimit
-
-    def giveItem(self, player):
-        # TODO self.gaining_list 에서 적절히 거른 결과물을 지급하자
-        print("gaining_list : ", self.gaining_list)
-        for gaining in self.gaining_list:
-            # 확률적으로 지급
-            if gaining[2] >= random.random():
-                player.acquire_item(gaining[0], gaining[1])
-                print("player received Item", gaining[0], gaining[1], "from", self.key)
-            else:
-                continue
-
-    # itemkey, expectedcount 쌍 리스트 반환
-    def getPredictedGainings(self):
-        rv_list = []
-        for gaining in self.gaining_list:
-            # itemkey, itemcount * rate
-            rv_list.append((gaining[0], gaining[1] * gaining[2]))
-
-        return rv_list
-
 
 def __main__():
     simulationManager = SimulationManager()
-    for current_turn in range(1):
+    customDataFrame = CustomDataFrame()
+    for current_turn in range(10):
         print("--------------------------------------current_turn : ", current_turn)
-        simulationManager.processTurn(current_turn)
+        simulationManager.processTurn(current_turn, customDataFrame)
+    customDataFrame.exportToExcel()
 
 
 __main__()
