@@ -1,6 +1,4 @@
 import pandas as pd
-import copy
-
 
 excel_file_path = "input.xlsx"
 
@@ -10,6 +8,23 @@ enchantData_df = pd.read_excel(excel_file_path, "EnchantData")
 
 
 def build_dict(dataFrame):
+    rv_dict = {}
+
+    for index, selectedRow in dataFrame.iterrows():
+        key_value = selectedRow["key"]
+
+        # key에 대한 딕셔너리가 없으면 생성
+        if key_value not in rv_dict:
+            rv_dict[key_value] = {}
+
+        # 나머지 키와 값을 할당
+        for col in dataFrame.columns:
+            if col not in ["key"]:
+                rv_dict[key_value][col] = selectedRow[col]
+    return rv_dict
+
+
+def build_dict_group_level(dataFrame):
     rv_dict = {}
 
     for index, selectedRow in dataFrame.iterrows():
@@ -40,8 +55,12 @@ def build_dict(dataFrame):
 
 
 def build_enchantData():
-    return build_dict(enchantData_df)
+    return build_dict_group_level(enchantData_df)
 
 
-build_dict(enchantData_df)
-# build_dict(enchantData_df)
+def build_playerData():
+    return build_dict(player_df)
+
+
+# print(build_enchantData())
+# print(build_playerData())
