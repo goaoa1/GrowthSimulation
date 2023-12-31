@@ -310,6 +310,7 @@ class Equipment:
             self.upperLimitEnchantLevel,
         )
         if targetEnchantLevel > self.upperLimitEnchantLevel:
+            raise Exception("앞에서 걸러졌어야 한다.")
             print(
                 "targetEnchantLevel > self.upperLimitEnchantLevel 라서 targetEnchantLevel을 조정합니다. targetEnchantLevel : ",
                 targetEnchantLevel,
@@ -320,7 +321,7 @@ class Equipment:
             self.enchantLevel,
             targetEnchantLevel,
         )
-        print("for _targetEnchantLevel in range(targetEnchantLevel):")
+        # print("for _targetEnchantLevel in range(targetEnchantLevel):")
         expectedBattlePoint = 0
         expectedGrowth = 0
         # 나올 수 있는 모든 강화 결과의 기댓값을 더한 값 - 현재 전투력 = 예상 성장치
@@ -539,7 +540,7 @@ class SimulationManager:
 def __main__():
     simulationManager = SimulationManager()
     customDataFrame = CustomDataFrame()
-    for current_turn in range(1, 7):
+    for current_turn in range(1, 30):
         print("----------------- ---------------------current_turn : ", current_turn)
         simulationManager.processTurn(current_turn, customDataFrame)
     customDataFrame.exportToExcel()

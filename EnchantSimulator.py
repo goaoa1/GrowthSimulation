@@ -13,7 +13,7 @@ def getBinomialDistribution(
     # 장비 고유
     successReward = enchantTable[currentEnchantLevel]["success_reward"]
 
-    simulation_count = 100000
+    simulation_count = 10000
 
     result_table = {}
 
@@ -22,7 +22,19 @@ def getBinomialDistribution(
         for tryout in range(try_count):
             tempRandom = random.random()
             if success_rate >= tempRandom:
-                _currentEnchantLevel += successReward
+                if (
+                    _currentEnchantLevel + successReward
+                    < enchantTable[currentEnchantLevel]["upperLimitEnchantLevel"]
+                ):
+                    _currentEnchantLevel += successReward
+                    continue
+                else:
+                    # 시뮬레이션 중 upperlimit 에 걸리는 경우
+                    _currentEnchantLevel = enchantTable[currentEnchantLevel][
+                        "upperLimitEnchantLevel"
+                    ]
+                    # print("강화 성공하였고 강화 한계치에 걸려 강화 레벨이 강화 한계치로 지정되었습니다.")
+                    continue
             # 실패한 경우
             else:
                 tempRandom = random.random()
@@ -33,7 +45,9 @@ def getBinomialDistribution(
                     _currentEnchantLevel += failure_penalty
                     if _currentEnchantLevel < lowerLimitEnchantLevel:
                         _currentEnchantLevel = lowerLimitEnchantLevel
+                        continue
         # print("result enchantLevel : ", _currentEnchantLevel)
+        # 결과 기록하는 부분
         if _currentEnchantLevel in result_table:
             result_table[_currentEnchantLevel] = (
                 result_table[_currentEnchantLevel] + 1 / simulation_count
