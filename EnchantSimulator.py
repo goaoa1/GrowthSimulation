@@ -66,7 +66,7 @@ def getRateOfReachingEnchantLevel(
     # 장비 고유
     successReward = 1
 
-    simulation_count = 2
+    simulation_count = 10000
 
     result_table = {}
 
@@ -75,8 +75,12 @@ def getRateOfReachingEnchantLevel(
         for tryout in range(max_try_count):
             tempRandom = random.random()
             if success_rate >= tempRandom:
+                # print("강화 성공!")
                 _currentEnchantLevel += successReward
                 if _currentEnchantLevel >= targetEnchantLevel:
+                    # print(
+                    #     f"_currentEnchantLevel >= targetEnchantLevel{_currentEnchantLevel}, {targetEnchantLevel}"
+                    # )
                     break
             # 실패한 경우
             else:
@@ -92,16 +96,46 @@ def getRateOfReachingEnchantLevel(
                         _currentEnchantLevel = lowerLimitEnchantLevel
         # print("result enchantLevel : ", _currentEnchantLevel)
         # 결과 기록
+        # print("_currentEnchantLevel", _currentEnchantLevel)
         if _currentEnchantLevel in result_table:
-            result_table[_currentEnchantLevel] = result_table[_currentEnchantLevel] + 1
-        else:
-            result_table[_currentEnchantLevel] = 1
+            result_table[_currentEnchantLevel] = result_table[_currentEnchantLevel] + (
+                1 / simulation_count
+            )
 
-        sorted_keys = sorted(result_table.keys())
-        for enchantLevel in sorted_keys:
-            if enchantLevel <= targetEnchantLevel:
-                rateOfReachingEnchantLevel += result_table[enchantLevel]
-            else:
-                # 키가 정렬되어 있으므로 브레이크한다.
-                break
-        return rateOfReachingEnchantLevel
+        else:
+            result_table[_currentEnchantLevel] = 1 / simulation_count
+
+    sorted_keys = sorted(result_table.keys())
+    # print("sorted_keys", sorted_keys)
+    #  예를 들어 6강 이상될 확률 = 6,7,8,9,10 강 될 확률의 합계
+    for enchantLevel in sorted_keys:
+        if enchantLevel >= targetEnchantLevel:
+            rateOfReachingEnchantLevel += result_table[enchantLevel]
+        else:
+            # 키가 정렬되어 있으므로 브레이크한다.
+            continue
+    # print(result_table)
+    print(
+        "targetEnchantLevel : ",
+        targetEnchantLevel,
+        "rateOfReachingEnchantLevel : ",
+        rateOfReachingEnchantLevel,
+        "max_try_count : ",
+        max_try_count,
+    )
+
+    return rateOfReachingEnchantLevel
+
+
+# import ExcelImporter
+
+
+# class EnchantData:
+#     enchantTable = {}
+
+#     def __init__(self):
+#         self.enchantTable = ExcelImporter.build_enchantData()
+
+
+# enchantData = EnchantData()
+# getRateOfReachingEnchantLevel(enchantData.enchantTable["equipment2"], 0, 0, 10, 3)

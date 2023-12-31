@@ -139,7 +139,7 @@ class Player:
         expectedGrowthFromEquipment_enchantLevel = 0
         expectedGrowthFromEquipment_tryCount = 0
         for equipment in self.equipment_list:
-            print("---- for equipment", equipment.key)
+            print("================ for equipment", equipment.key)
             if not (equipment.isEnchantable(self)):
                 continue
             expectedGrowthFromEnchantLevel = 0
@@ -253,13 +253,14 @@ class Equipment:
     enchantLevel = 0
     enchantType = "penalty1"
     lowerLimitEnchantLevel = 0
-    upperLimitEnchantLevel = 3
+    upperLimitEnchantLevel = 10
     enchantTable = {}
 
     def __init__(self, key, enchantLevel, enchantTable):
         self.key = key
         self.enchantLevel = enchantLevel
         self.enchantTable = enchantTable
+        self.upperLimitEnchantLevel = 10
 
     def doEnchant(self):
         print(
@@ -537,7 +538,7 @@ class SimulationManager:
 def __main__():
     simulationManager = SimulationManager()
     customDataFrame = CustomDataFrame()
-    for current_turn in range(1, 11):
+    for current_turn in range(1, 3):
         print("----------------- ---------------------current_turn : ", current_turn)
         simulationManager.processTurn(current_turn, customDataFrame)
     customDataFrame.exportToExcel()
