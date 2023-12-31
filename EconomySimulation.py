@@ -269,19 +269,26 @@ class Equipment:
             "current enchant level : ",
             self.enchantLevel,
         )
+        # 성공 케이스
         if self.enchantTable[self.enchantLevel]["success_rate"] >= random.random():
             self.enchantLevel += self.enchantTable[self.enchantLevel]["success_reward"]
-            print("enchant successed. current enchant level : ", self.enchantLevel)
+            print("enchant success. current enchant level : ", self.enchantLevel)
         else:
             if (
                 self.enchantLevel
                 + self.enchantTable[self.enchantLevel]["failure_penalty"]
                 >= self.lowerLimitEnchantLevel
             ):
-                self.enchantLevel += self.enchantTable[self.enchantLevel][
-                    "failure_penalty"
-                ]
-                print("enchant failed. current enchant level : ", self.enchantLevel)
+                if (
+                    self.enchantTable[self.enchantLevel]["repair_rate"]
+                    >= random.random()
+                ):
+                    print("enchant failed. but repair success: ", self.enchantLevel)
+                else:
+                    self.enchantLevel += self.enchantTable[self.enchantLevel][
+                        "failure_penalty"
+                    ]
+                    print("enchant failed. current enchant level : ", self.enchantLevel)
             else:
                 self.enchantLevel = self.lowerLimitEnchantLevel
                 print("enchant failed. but penaly is limited")
@@ -293,7 +300,6 @@ class Equipment:
 
     # 시행 횟수 - 강화 확률 토대로 계산
     def calculateExpectedGrowth(self, try_count, targetEnchantLevel):
-        _expectedGrowth = 0
         # 강화 결과 성공 시(양수가 나오는) 기대 성장치 합계
         # TODO 강화 성공 한계 치 등록 필요
         # 강화 결과 실패 시(음수가 나오는) 기대 성장치 합계
@@ -314,32 +320,28 @@ class Equipment:
             self.enchantLevel,
             targetEnchantLevel,
         )
-        for _targetEnchantLevel in range(self.enchantLevel, targetEnchantLevel + 1):
-            print("for _targetEnchantLevel in range(targetEnchantLevel):")
-            # 인덱스가 0 부터 시작하므로 1을 더해준다.
-            # _targetEnchantLevel += +1
-            print("_targetEnchantLevel", _targetEnchantLevel)
-            expectedBattlePoint = 0
-            expectedGrowth = 0
-            # 나올 수 있는 모든 강화 결과의 기댓값을 더한 값 - 현재 전투력 = 예상 성장치
-            result_table = EnchantSimulator.getBinomialDistribution(
-                self.enchantTable,
-                self.enchantLevel,
-                0,
-                try_count,
-            )
-            for _enchantLevel in sorted(result_table.keys()):
-                if _enchantLevel >= _targetEnchantLevel:
-                    expectedBattlePoint += (
-                        self.getBattlePointOfLevel(_enchantLevel)
-                        * result_table[_enchantLevel]
-                    )
-                else:
-                    continue
-            expectedGrowth = expectedBattlePoint - self.getBattlePointOfLevel(
-                self.enchantLevel
-            )
-            print("expectedGrowth", expectedGrowth)
+        print("for _targetEnchantLevel in range(targetEnchantLevel):")
+        expectedBattlePoint = 0
+        expectedGrowth = 0
+        # 나올 수 있는 모든 강화 결과의 기댓값을 더한 값 - 현재 전투력 = 예상 성장치
+        result_table = EnchantSimulator.getBinomialDistribution(
+            self.enchantTable,
+            self.enchantLevel,
+            0,
+            try_count,
+        )
+        for _enchantLevel in sorted(result_table.keys()):
+            if _enchantLevel >= targetEnchantLevel:
+                expectedBattlePoint += (
+                    self.getBattlePointOfLevel(_enchantLevel)
+                    * result_table[_enchantLevel]
+                )
+            else:
+                continue
+        expectedGrowth = expectedBattlePoint - self.getBattlePointOfLevel(
+            self.enchantLevel
+        )
+        print("expectedGrowth", expectedGrowth)
 
         return expectedGrowth
 
@@ -537,7 +539,7 @@ class SimulationManager:
 def __main__():
     simulationManager = SimulationManager()
     customDataFrame = CustomDataFrame()
-    for current_turn in range(1, 3):
+    for current_turn in range(1, 7):
         print("----------------- ---------------------current_turn : ", current_turn)
         simulationManager.processTurn(current_turn, customDataFrame)
     customDataFrame.exportToExcel()
