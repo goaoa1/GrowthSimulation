@@ -110,7 +110,8 @@ class Player:
             # index 가 0 부터 시작하므로 오프셋으로서 1을 더해준다
             current_try += 1
             print("current_try", current_try)
-            targetEnchantLevel = current_try
+            #  TODO 여기는 ...
+            # targetEnchantLevel = current_try
             current_expectedGrowth = equipment.calculateExpectedGrowth(
                 current_try, targetEnchantLevel
             )
@@ -138,6 +139,7 @@ class Player:
         expectedGrowthFromEquipment_enchantLevel = 0
         expectedGrowthFromEquipment_tryCount = 0
         for equipment in self.equipment_list:
+            print("---- for equipment", equipment.key)
             if not (equipment.isEnchantable(self)):
                 continue
             expectedGrowthFromEnchantLevel = 0
@@ -145,7 +147,7 @@ class Player:
             expectedGrowthFromEnchantLevel_tryCount = 0
             # TODO trycount 가 1인데 밑 리스트 크기가 2이상이면 불가능한 상황이다. 해결 필요
             for _targetenchantLevel in range(
-                equipment.enchantLevel + 1, equipment.upperLimitEnchantLevel
+                equipment.enchantLevel + 1, equipment.upperLimitEnchantLevel + 1
             ):
                 print("_targetenchantLevel", _targetenchantLevel)
                 expectedGrowthFromEnchantLevel_tuple = (
@@ -300,12 +302,21 @@ class Equipment:
             targetEnchantLevel,
             self.upperLimitEnchantLevel,
         )
-        if targetEnchantLevel >= self.upperLimitEnchantLevel:
+        if targetEnchantLevel > self.upperLimitEnchantLevel:
+            print(
+                "targetEnchantLevel > self.upperLimitEnchantLevel 라서 targetEnchantLevel을 조정합니다. targetEnchantLevel : ",
+                targetEnchantLevel,
+            )
             targetEnchantLevel = self.upperLimitEnchantLevel
-        print("targetEnchantLevel", targetEnchantLevel)
-        for _targetEnchantLevel in range(targetEnchantLevel):
+        print(
+            "self.enchantLevel, targetEnchantLevel",
+            self.enchantLevel,
+            targetEnchantLevel,
+        )
+        for _targetEnchantLevel in range(self.enchantLevel, targetEnchantLevel + 1):
+            print("for _targetEnchantLevel in range(targetEnchantLevel):")
             # 인덱스가 0 부터 시작하므로 1을 더해준다.
-            _targetEnchantLevel += +1
+            # _targetEnchantLevel += +1
             print("_targetEnchantLevel", _targetEnchantLevel)
             rateOfReachingEnchantLevel = EnchantSimulator.getRateOfReachingEnchantLevel(
                 self.enchantTable,
@@ -526,7 +537,7 @@ class SimulationManager:
 def __main__():
     simulationManager = SimulationManager()
     customDataFrame = CustomDataFrame()
-    for current_turn in range(10):
+    for current_turn in range(1, 11):
         print("----------------- ---------------------current_turn : ", current_turn)
         simulationManager.processTurn(current_turn, customDataFrame)
     customDataFrame.exportToExcel()
