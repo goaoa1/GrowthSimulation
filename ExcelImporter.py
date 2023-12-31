@@ -5,6 +5,7 @@ excel_file_path = "Input.xlsx"
 player_df = pd.read_excel(excel_file_path, "Player")
 huntingField_df = pd.read_excel(excel_file_path, "HuntingField")
 enchantData_df = pd.read_excel(excel_file_path, "EnchantData")
+equipmentData_df = pd.read_excel(excel_file_path, "EquipmentData")
 
 
 def build_dict(dataFrame):
@@ -64,6 +65,10 @@ def build_playerData():
 
 def build_huntingFieldData():
     return build_dict(huntingField_df)
+
+
+def build_equipmentData():
+    return build_dict(equipmentData_df)
 
 
 class CustomDataFrame:

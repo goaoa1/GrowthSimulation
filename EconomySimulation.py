@@ -256,11 +256,13 @@ class Equipment:
     upperLimitEnchantLevel = 10
     enchantTable = {}
 
-    def __init__(self, key, enchantLevel, enchantTable):
+    def __init__(
+        self, key, enchantTable, lowerLimitEnchantLevel, upperLimitEnchantLevel
+    ):
         self.key = key
-        self.enchantLevel = enchantLevel
         self.enchantTable = enchantTable
-        self.upperLimitEnchantLevel = 10
+        self.lowerLimitEnchantLevel = lowerLimitEnchantLevel
+        self.upperLimitEnchantLevel = upperLimitEnchantLevel
 
     def doEnchant(self):
         print(
@@ -328,8 +330,9 @@ class Equipment:
         result_table = EnchantSimulator.getBinomialDistribution(
             self.enchantTable,
             self.enchantLevel,
-            0,
+            self.lowerLimitEnchantLevel,
             try_count,
+            self.upperLimitEnchantLevel,
         )
         for _enchantLevel in sorted(result_table.keys()):
             if _enchantLevel >= targetEnchantLevel:
@@ -366,6 +369,9 @@ class Equipment:
             self.enchantTable[enchantLevel]["dd"]
             + self.enchantTable[enchantLevel]["pv"]
         )
+
+    def setInitLevel(self, level):
+        self.enchantLevel = level
 
 
 class HuntingField:
@@ -407,6 +413,8 @@ class SimulationManager:
     player_List = None
     huntingField_list = []
     enchantData = {}
+    equipmentData_dict = {}
+    equipment_dict = {}
 
     def __init__(self):
         huntingField_dict = ExcelImporter.build_huntingFieldData()
@@ -434,6 +442,17 @@ class SimulationManager:
                 )
             )
         self.enchantData = EnchantData()
+        equipmentData_dict = {}
+        equipmentData_dict = ExcelImporter.build_equipmentData()
+        equipment_dict = {}
+        for equipment_key in equipmentData_dict.keys():
+            equipment_dict[equipment_key] = Equipment(
+                equipment_key,
+                self.enchantData.enchantTable[equipment_key],
+                equipmentData_dict[equipment_key]["lowerLimitEnchantLevel"],
+                equipmentData_dict[equipment_key]["upperLimitEnchantLevel"],
+            )
+
         player_dict = ExcelImporter.build_playerData()
         for _player in player_dict.keys():
             _player_dict = player_dict[_player]
@@ -445,23 +464,14 @@ class SimulationManager:
                     _player_dict["item2"]: _player_dict["count2"],
                 },
                 [
-                    Equipment(
-                        _player_dict["equipment0"],
-                        _player_dict["equipment0_level"],
-                        self.enchantData.enchantTable[_player_dict["equipment0"]],
-                    ),
-                    Equipment(
-                        _player_dict["equipment1"],
-                        _player_dict["equipment1_level"],
-                        self.enchantData.enchantTable[_player_dict["equipment1"]],
-                    ),
-                    Equipment(
-                        _player_dict["equipment2"],
-                        _player_dict["equipment2_level"],
-                        self.enchantData.enchantTable[_player_dict["equipment2"]],
-                    ),
+                    equipment_dict[_player_dict["equipment0"]],
+                    equipment_dict[_player_dict["equipment1"]],
+                    equipment_dict[_player_dict["equipment2"]],
                 ],
             )
+            for equipment in player.equipment_list:
+                equipment.setInitLevel(_player_dict["equipment0_level"])
+
             self.player_List = []
             self.player_List.append(player)
 
@@ -540,7 +550,7 @@ class SimulationManager:
 def __main__():
     simulationManager = SimulationManager()
     customDataFrame = CustomDataFrame()
-    for current_turn in range(1, 30):
+    for current_turn in range(1, 10):
         print("----------------- ---------------------current_turn : ", current_turn)
         simulationManager.processTurn(current_turn, customDataFrame)
     customDataFrame.exportToExcel()

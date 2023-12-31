@@ -5,7 +5,11 @@ import random
 # TODO 플레이어는 목표 달성 확률이 50%보다 높으면 도전한다.
 # 분포도 구하는 시뮬레이션
 def getBinomialDistribution(
-    enchantTable, currentEnchantLevel, lowerLimitEnchantLevel, try_count
+    enchantTable,
+    currentEnchantLevel,
+    lowerLimitEnchantLevel,
+    try_count,
+    upperLimitEnchantLevel,
 ):
     success_rate = enchantTable[currentEnchantLevel]["success_rate"]
     failure_penalty = enchantTable[currentEnchantLevel]["failure_penalty"]
@@ -22,17 +26,12 @@ def getBinomialDistribution(
         for tryout in range(try_count):
             tempRandom = random.random()
             if success_rate >= tempRandom:
-                if (
-                    _currentEnchantLevel + successReward
-                    < enchantTable[currentEnchantLevel]["upperLimitEnchantLevel"]
-                ):
+                if _currentEnchantLevel + successReward < upperLimitEnchantLevel:
                     _currentEnchantLevel += successReward
                     continue
                 else:
                     # 시뮬레이션 중 upperlimit 에 걸리는 경우
-                    _currentEnchantLevel = enchantTable[currentEnchantLevel][
-                        "upperLimitEnchantLevel"
-                    ]
+                    _currentEnchantLevel = upperLimitEnchantLevel
                     # print("강화 성공하였고 강화 한계치에 걸려 강화 레벨이 강화 한계치로 지정되었습니다.")
                     continue
             # 실패한 경우
