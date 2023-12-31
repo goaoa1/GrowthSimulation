@@ -13,7 +13,7 @@ def getBinomialDistribution(
     # 장비 고유
     successReward = enchantTable[currentEnchantLevel]["success_reward"]
 
-    simulation_count = 1000000
+    simulation_count = 100000
 
     result_table = {}
 
@@ -35,17 +35,15 @@ def getBinomialDistribution(
                         _currentEnchantLevel = lowerLimitEnchantLevel
         # print("result enchantLevel : ", _currentEnchantLevel)
         if _currentEnchantLevel in result_table:
-            result_table[_currentEnchantLevel] = result_table[_currentEnchantLevel] + 1
+            result_table[_currentEnchantLevel] = (
+                result_table[_currentEnchantLevel] + 1 / simulation_count
+            )
         else:
-            result_table[_currentEnchantLevel] = 1
+            result_table[_currentEnchantLevel] = 1 / simulation_count
 
-    sorted_keys = sorted(result_table.keys())
-    print("total simulation_count : ", simulation_count)
-    for key in sorted_keys:
-        print(
-            key, ":", result_table[key], result_table[key] * 100 / simulation_count, "%"
-        )
-    input()
+    # sorted_keys = sorted(result_table.keys())
+    # print("total simulation_count : ", simulation_count)
+    return result_table
 
 
 # 목표 강화 수치 이상 달성 확률을 계산한다. get_probability_of_reaching_target

@@ -319,30 +319,29 @@ class Equipment:
             # 인덱스가 0 부터 시작하므로 1을 더해준다.
             # _targetEnchantLevel += +1
             print("_targetEnchantLevel", _targetEnchantLevel)
-            rateOfReachingEnchantLevel = EnchantSimulator.getRateOfReachingEnchantLevel(
+            expectedBattlePoint = 0
+            expectedGrowth = 0
+            # 나올 수 있는 모든 강화 결과의 기댓값을 더한 값 - 현재 전투력 = 예상 성장치
+            result_table = EnchantSimulator.getBinomialDistribution(
                 self.enchantTable,
                 self.enchantLevel,
                 0,
                 try_count,
-                _targetEnchantLevel,
             )
-            print("rateOfReachingEnchantLevel", rateOfReachingEnchantLevel)
-            _expectedGrowth = (
-                self.getBattlePointOfLevel(_targetEnchantLevel)
-            ) * rateOfReachingEnchantLevel - self.getBattlePointOfLevel(
+            for _enchantLevel in sorted(result_table.keys()):
+                if _enchantLevel >= _targetEnchantLevel:
+                    expectedBattlePoint += (
+                        self.getBattlePointOfLevel(_enchantLevel)
+                        * result_table[_enchantLevel]
+                    )
+                else:
+                    continue
+            expectedGrowth = expectedBattlePoint - self.getBattlePointOfLevel(
                 self.enchantLevel
             )
-            print(
-                "self.getBattlePointOfLevel(_targetEnchantLevel)",
-                self.getBattlePointOfLevel(_targetEnchantLevel),
-            )
-            print(
-                "self.getBattlePointOfLevel(self.enchantLevel)",
-                self.getBattlePointOfLevel(self.enchantLevel),
-            )
-            print("_expectedGrowth", _expectedGrowth)
+            print("expectedGrowth", expectedGrowth)
 
-        return _expectedGrowth
+        return expectedGrowth
 
     def isEnchantable(self, player):
         # 강화 한계치보다 강화가 같거나 높은지
