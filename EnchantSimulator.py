@@ -61,7 +61,7 @@ def getBinomialDistribution(
 
 # 목표 강화 수치 이상 달성 확률을 계산한다. get_probability_of_reaching_target
 # 목표 강화 수치 이상 달성시 스탑
-def getRateOfReachingEnchantLevel(
+def getBinomialDistribution_with_RateOfReachingEnchantLevel(
     enchantTable,
     currentEnchantLevel,
     lowerLimitEnchantLevel,
@@ -135,18 +135,32 @@ def getRateOfReachingEnchantLevel(
         max_try_count,
     )
 
-    return rateOfReachingEnchantLevel
+    return result_table
 
 
-# import ExcelImporter
+import ExcelImporter
 
 
-# class EnchantData:
-#     enchantTable = {}
+class EnchantData:
+    enchantTable = {}
 
-#     def __init__(self):
-#         self.enchantTable = ExcelImporter.build_enchantData()
+    def __init__(self):
+        self.enchantTable = ExcelImporter.build_enchantData()
 
 
-# enchantData = EnchantData()
+enchantData = EnchantData()
 # getRateOfReachingEnchantLevel(enchantData.enchantTable["equipment2"], 0, 0, 10, 3)
+result_dict = getBinomialDistribution_with_RateOfReachingEnchantLevel(
+    enchantData.enchantTable["equipment2"],
+    0,
+    0,
+    30,
+    5,
+)
+
+# result_dict = getBinomialDistribution(
+#     enchantData.enchantTable["equipment2"], 0, 0, 10, 10
+# )
+sorted_key_list = sorted(result_dict.keys())
+for key in sorted_key_list:
+    print(key, result_dict[key])

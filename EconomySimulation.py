@@ -327,12 +327,22 @@ class Equipment:
         expectedBattlePoint = 0
         expectedGrowth = 0
         # 나올 수 있는 모든 강화 결과의 기댓값을 더한 값 - 현재 전투력 = 예상 성장치
-        result_table = EnchantSimulator.getBinomialDistribution(
-            self.enchantTable,
-            self.enchantLevel,
-            self.lowerLimitEnchantLevel,
-            try_count,
-            self.upperLimitEnchantLevel,
+        # 이 함수는 용처가 잘못된듯
+        # result_table = EnchantSimulator.getBinomialDistribution(
+        #     self.enchantTable,
+        #     self.enchantLevel,
+        #     self.lowerLimitEnchantLevel,
+        #     try_count,
+        #     self.upperLimitEnchantLevel,
+        # )
+        result_table = (
+            EnchantSimulator.getBinomialDistribution_with_RateOfReachingEnchantLevel(
+                self.enchantTable,
+                self.enchantLevel,
+                self.lowerLimitEnchantLevel,
+                try_count,
+                targetEnchantLevel,
+            )
         )
         for _enchantLevel in sorted(result_table.keys()):
             if _enchantLevel >= targetEnchantLevel:
