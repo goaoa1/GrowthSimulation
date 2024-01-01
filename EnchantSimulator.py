@@ -59,25 +59,25 @@ def getBinomialDistribution(
     return result_table
 
 
-# 목표 강화 수치 이상 달성 확률을 계산한다. get_probability_of_reaching_target
-# 목표 강화 수치 이상 달성시 스탑
-def getBinomialDistribution_with_RateOfReachingEnchantLevel(
+# 목표 강화 수치 이상 달성 확률을 계산한다.
+# 시뮬레이션 중 목표 강화 수치 이상 달성시 시뮬레이션 중단.
+def get_rate_of_reaching_targetEnchantLevel(
     enchantTable,
     currentEnchantLevel,
     lowerLimitEnchantLevel,
+    upperLimitEnchantLevel,
     max_try_count,
     targetEnchantLevel,
 ):
+    simulation_count = 10000
+
     rateOfReachingEnchantLevel = 0
 
     success_rate = enchantTable[currentEnchantLevel]["success_rate"]
     failure_penalty = enchantTable[currentEnchantLevel]["failure_penalty"]
     success_rate = enchantTable[currentEnchantLevel]["success_rate"]
     repair_rate = enchantTable[currentEnchantLevel]["repair_rate"]
-    # 장비 고유
-    successReward = 1
-
-    simulation_count = 10000
+    successReward = enchantTable[currentEnchantLevel]["success_reward"]
 
     result_table = {}
 
@@ -88,10 +88,10 @@ def getBinomialDistribution_with_RateOfReachingEnchantLevel(
             if success_rate >= tempRandom:
                 # print("강화 성공!")
                 _currentEnchantLevel += successReward
+                if _currentEnchantLevel > upperLimitEnchantLevel:
+                    # print("강화 상한에 도달하여 더이상 강화 레벨이 올라가지 않습니다.")
+                    _currentEnchantLevel = upperLimitEnchantLevel
                 if _currentEnchantLevel >= targetEnchantLevel:
-                    # print(
-                    #     f"_currentEnchantLevel >= targetEnchantLevel{_currentEnchantLevel}, {targetEnchantLevel}"
-                    # )
                     break
             # 실패한 경우
             else:
@@ -103,7 +103,7 @@ def getBinomialDistribution_with_RateOfReachingEnchantLevel(
                 else:
                     _currentEnchantLevel += failure_penalty
                     if _currentEnchantLevel < lowerLimitEnchantLevel:
-                        # print("하한선에 도달하여 더이상 강화 레벨이 내려가지 않습니다.")
+                        # print("강화 하한에 도달하여 더이상 강화 레벨이 내려가지 않습니다.")
                         _currentEnchantLevel = lowerLimitEnchantLevel
         # print("result enchantLevel : ", _currentEnchantLevel)
         # 결과 기록
@@ -126,41 +126,39 @@ def getBinomialDistribution_with_RateOfReachingEnchantLevel(
             # 키가 정렬되어 있으므로 브레이크한다.
             continue
     # print(result_table)
-    print(
-        "targetEnchantLevel : ",
-        targetEnchantLevel,
-        "rateOfReachingEnchantLevel : ",
-        rateOfReachingEnchantLevel,
-        "max_try_count : ",
-        max_try_count,
-    )
+    # print(
+    #     "targetEnchantLevel : ",
+    #     targetEnchantLevel,
+    #     "rateOfReachingEnchantLevel : ",
+    #     rateOfReachingEnchantLevel,
+    #     "max_try_count : ",
+    #     max_try_count,
+    # )
 
     return result_table
 
 
-import ExcelImporter
+# import ExcelImporter
 
 
-class EnchantData:
-    enchantTable = {}
+# class EnchantData:
+#     enchantTable = {}
 
-    def __init__(self):
-        self.enchantTable = ExcelImporter.build_enchantData()
+#     def __init__(self):
+#         self.enchantTable = ExcelImporter.build_enchantData()
 
 
-enchantData = EnchantData()
-# getRateOfReachingEnchantLevel(enchantData.enchantTable["equipment2"], 0, 0, 10, 3)
-result_dict = getBinomialDistribution_with_RateOfReachingEnchantLevel(
-    enchantData.enchantTable["equipment2"],
-    0,
-    0,
-    30,
-    5,
-)
+# enchantData = EnchantData()
 
-# result_dict = getBinomialDistribution(
-#     enchantData.enchantTable["equipment2"], 0, 0, 10, 10
+# result_dict = get_rate_of_reaching_targetEnchantLevel(
+#     enchantData.enchantTable["equipment2"],
+#     0,
+#     0,
+#     30,
+#     5,
 # )
-sorted_key_list = sorted(result_dict.keys())
-for key in sorted_key_list:
-    print(key, result_dict[key])
+
+
+# sorted_key_list = sorted(result_dict.keys())
+# for key in sorted_key_list:
+#     print(key, result_dict[key])

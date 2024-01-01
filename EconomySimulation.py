@@ -103,30 +103,31 @@ class Player:
         # TODO trycount 가 0일 때 처리
         if try_count == 0:
             return
-        expectedGrowthFromTryCount = 0
-        expectedGrowthFromTryCount_tryCount = 0
-        for current_try in range(try_count):
-            # 몇 회 시도하는 게 최선인지 알 수 없으니 try_count가 n이라면 1~n까지 시도한 경우의 수를 모두 따지고 그중 가장 큰 값을 가져가자!
-            # index 가 0 부터 시작하므로 오프셋으로서 1을 더해준다
-            current_try += 1
-            print("current_try", current_try)
-            #  TODO 여기는 ...
-            # targetEnchantLevel = current_try
-            current_expectedGrowth = equipment.calculateExpectedGrowth(
-                current_try, targetEnchantLevel
-            )
-            print(
-                "current_expectedGrowth, equipment, targetEnchantLevel, current_try : ",
-                current_expectedGrowth,
-                equipment.key,
-                targetEnchantLevel,
-                current_try,
-            )
-            if current_expectedGrowth >= expectedGrowthFromTryCount:
-                expectedGrowthFromTryCount = current_expectedGrowth
-                expectedGrowthFromTryCount_tryCount = current_try
-        if expectedGrowthFromTryCount >= expectedGrowthFromEquipment:
-            expectedGrowthFromEquipment = expectedGrowthFromTryCount
+        expectedGrowthFromEquipment = equipment.calculateExpectedGrowth(
+            try_count, targetEnchantLevel
+        )
+        expectedGrowthFromTryCount_tryCount = try_count
+        #  TODO 나중에 deprecate this
+        # expectedGrowthFromTryCount = 0
+        # expectedGrowthFromTryCount_tryCount = 0
+        # for current_try in range(try_count):
+        #     current_try += 1
+        #     print("current_try", current_try)
+        #     current_expectedGrowth = equipment.calculateExpectedGrowth(
+        #         current_try, targetEnchantLevel
+        #     )
+        #     print(
+        #         "current_expectedGrowth, equipment, targetEnchantLevel, current_try : ",
+        #         current_expectedGrowth,
+        #         equipment.key,
+        #         targetEnchantLevel,
+        #         current_try,
+        #     )
+        #     if current_expectedGrowth >= expectedGrowthFromTryCount:
+        #         expectedGrowthFromTryCount = current_expectedGrowth
+        #         expectedGrowthFromTryCount_tryCount = current_try
+        # if expectedGrowthFromTryCount >= expectedGrowthFromEquipment:
+        #     expectedGrowthFromEquipment = expectedGrowthFromTryCount
 
         return expectedGrowthFromEquipment, expectedGrowthFromTryCount_tryCount
 
@@ -326,32 +327,20 @@ class Equipment:
         # print("for _targetEnchantLevel in range(targetEnchantLevel):")
         expectedBattlePoint = 0
         expectedGrowth = 0
-        # 나올 수 있는 모든 강화 결과의 기댓값을 더한 값 - 현재 전투력 = 예상 성장치
-        # 이 함수는 용처가 잘못된듯
-        # result_table = EnchantSimulator.getBinomialDistribution(
-        #     self.enchantTable,
-        #     self.enchantLevel,
-        #     self.lowerLimitEnchantLevel,
-        #     try_count,
-        #     self.upperLimitEnchantLevel,
-        # )
-        result_table = (
-            EnchantSimulator.getBinomialDistribution_with_RateOfReachingEnchantLevel(
-                self.enchantTable,
-                self.enchantLevel,
-                self.lowerLimitEnchantLevel,
-                try_count,
-                targetEnchantLevel,
-            )
+
+        result_table = EnchantSimulator.get_rate_of_reaching_targetEnchantLevel(
+            self.enchantTable,
+            self.enchantLevel,
+            self.lowerLimitEnchantLevel,
+            self.upperLimitEnchantLevel,
+            try_count,
+            targetEnchantLevel,
         )
         for _enchantLevel in sorted(result_table.keys()):
-            if _enchantLevel >= targetEnchantLevel:
-                expectedBattlePoint += (
-                    self.getBattlePointOfLevel(_enchantLevel)
-                    * result_table[_enchantLevel]
-                )
-            else:
-                continue
+            expectedBattlePoint += (
+                self.getBattlePointOfLevel(_enchantLevel) * result_table[_enchantLevel]
+            )
+
         expectedGrowth = expectedBattlePoint - self.getBattlePointOfLevel(
             self.enchantLevel
         )
