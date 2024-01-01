@@ -44,7 +44,7 @@ class Player:
             if result["growth"] > 0:
                 equipment = result["equipment"]
                 expectedGrowth = result["growth"]
-                enchantLevel = result["enchantlevel"]
+                enchantLevel = result["enchantLevel"]
                 tryCount = result["tryCount"]
             else:
                 print(
@@ -54,7 +54,15 @@ class Player:
                 )
                 continue
             print(
-                "getBestExpectedEnchantEquipment 결과 : ", result["equipment"].key, result
+                "getBestExpectedEnchantEquipment 결과 : ",
+                "equipment : ",
+                result["equipment"].key,
+                "growth : ",
+                result["growth"],
+                "enchantLevel : ",
+                result["enchantLevel"],
+                "tryCount : ",
+                result["tryCount"],
             )
             expectedGrowthFromEquipment = expectedGrowth
             if expectedGrowthFromEquipment >= expectedGrowthFromHuntingField:
@@ -191,7 +199,7 @@ class Player:
         return {
             "equipment": expectedGrowthFromEquipment_equipment,
             "growth": expectedGrowthFromEquipment,
-            "enchantlevel": expectedGrowthFromEquipment_enchantLevel,
+            "enchantLevel": expectedGrowthFromEquipment_enchantLevel,
             "tryCount": expectedGrowthFromEquipment_tryCount,
         }
 
@@ -336,6 +344,9 @@ class Equipment:
             try_count,
             targetEnchantLevel,
         )
+        print("-------------------result_table--------------------")
+        for _enchantLevel in sorted(result_table.keys()):
+            print(_enchantLevel, " : ", round(result_table[_enchantLevel], 4))
         for _enchantLevel in sorted(result_table.keys()):
             expectedBattlePoint += (
                 self.getBattlePointOfLevel(_enchantLevel) * result_table[_enchantLevel]

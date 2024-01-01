@@ -73,18 +73,19 @@ def get_rate_of_reaching_targetEnchantLevel(
 
     rateOfReachingEnchantLevel = 0
 
-    success_rate = enchantTable[currentEnchantLevel]["success_rate"]
-    failure_penalty = enchantTable[currentEnchantLevel]["failure_penalty"]
-    success_rate = enchantTable[currentEnchantLevel]["success_rate"]
-    repair_rate = enchantTable[currentEnchantLevel]["repair_rate"]
-    successReward = enchantTable[currentEnchantLevel]["success_reward"]
-
     result_table = {}
 
     for simulation in range(simulation_count):
         _currentEnchantLevel = currentEnchantLevel
         for tryout in range(max_try_count):
+            success_rate = enchantTable[_currentEnchantLevel]["success_rate"]
+            failure_penalty = enchantTable[_currentEnchantLevel]["failure_penalty"]
+            success_rate = enchantTable[_currentEnchantLevel]["success_rate"]
+            repair_rate = enchantTable[_currentEnchantLevel]["repair_rate"]
+            successReward = enchantTable[_currentEnchantLevel]["success_reward"]
+
             tempRandom = random.random()
+
             if success_rate >= tempRandom:
                 # print("강화 성공!")
                 _currentEnchantLevel += successReward
@@ -105,9 +106,7 @@ def get_rate_of_reaching_targetEnchantLevel(
                     if _currentEnchantLevel < lowerLimitEnchantLevel:
                         # print("강화 하한에 도달하여 더이상 강화 레벨이 내려가지 않습니다.")
                         _currentEnchantLevel = lowerLimitEnchantLevel
-        # print("result enchantLevel : ", _currentEnchantLevel)
         # 결과 기록
-        # print("_currentEnchantLevel", _currentEnchantLevel)
         if _currentEnchantLevel in result_table:
             result_table[_currentEnchantLevel] = result_table[_currentEnchantLevel] + (
                 1 / simulation_count
@@ -115,25 +114,6 @@ def get_rate_of_reaching_targetEnchantLevel(
 
         else:
             result_table[_currentEnchantLevel] = 1 / simulation_count
-
-    sorted_keys = sorted(result_table.keys())
-    # print("sorted_keys", sorted_keys)
-    #  예를 들어 6강 이상될 확률 = 6,7,8,9,10 강 될 확률의 합계
-    for enchantLevel in sorted_keys:
-        if enchantLevel >= targetEnchantLevel:
-            rateOfReachingEnchantLevel += result_table[enchantLevel]
-        else:
-            # 키가 정렬되어 있으므로 브레이크한다.
-            continue
-    # print(result_table)
-    # print(
-    #     "targetEnchantLevel : ",
-    #     targetEnchantLevel,
-    #     "rateOfReachingEnchantLevel : ",
-    #     rateOfReachingEnchantLevel,
-    #     "max_try_count : ",
-    #     max_try_count,
-    # )
 
     return result_table
 
@@ -151,11 +131,12 @@ def get_rate_of_reaching_targetEnchantLevel(
 # enchantData = EnchantData()
 
 # result_dict = get_rate_of_reaching_targetEnchantLevel(
-#     enchantData.enchantTable["equipment2"],
+#     enchantData.enchantTable["equipment0"],
 #     0,
 #     0,
+#     10,
 #     30,
-#     5,
+#     10,
 # )
 
 
