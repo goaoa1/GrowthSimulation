@@ -91,6 +91,8 @@ class Player:
             enchantMaterial_count = tuple[1]
             # 강화 재료 종류 별로 만들 수 있는 값 중 가장 작은 값이 제작할 수 있는 개수다.
             if enchantMaterial in item_dict:
+                if enchantMaterial_count == 0:
+                    continue
                 _try_count = item_dict[enchantMaterial] // enchantMaterial_count
                 if try_count == -1:
                     try_count = _try_count
@@ -388,14 +390,15 @@ class HuntingField:
     # item, count, rate
     key = ""
     gaining_list = []
-    battlePointLimit = 0
+    enterLimit_battlePoint = 0
 
-    def __init__(self, key, tuple, tuple1, tuple2):
+    def __init__(self, key, enterLimit_battlePoint, tuple, tuple1, tuple2):
         self.gaining_list = [tuple, tuple1, tuple2]
         self.key = key
+        self.enterLimit_battlePoint = enterLimit_battlePoint
 
     def isPlayerEnterable(self, player):
-        return player.getBattlePoint() >= self.battlePointLimit
+        return player.getBattlePoint() >= self.enterLimit_battlePoint
 
     def giveItem(self, player):
         # TODO self.gaining_list 에서 적절히 거른 결과물을 지급하자
@@ -434,6 +437,7 @@ class SimulationManager:
             self.huntingField_list.append(
                 HuntingField(
                     _huntingField_key,
+                    _huntingField_dict["enterLimit_battlePoint"],
                     (
                         _huntingField_dict["gaining0"],
                         _huntingField_dict["count0"],
@@ -491,7 +495,7 @@ class SimulationManager:
             chosenHuntingField = player.chooseHuntingField(self.huntingField_list)
             print("player.chooseHuntingField", chosenHuntingField.key)
             chosenHuntingField.giveItem(player)
-            # TODO 강화할 게 없을 때까지 강화시도 한다.
+            # 강화할 게 없을 때까지 강화시도 한다.
             while True:
                 print("----now find getBestExpectedEnchantEquipment")
 
@@ -508,20 +512,15 @@ class SimulationManager:
                         best_enchant_info["growth"],
                     )
                     break
-                # TODO 리팩토링 필요
                 if best_enchant_info_equipment is not None:
-                    equipment_key = best_enchant_info_equipment.key
-                    enchant_level = best_enchant_info_equipment.enchantLevel
-                    print(
-                        f"Best Expected Enchant Equipment equipment_key, current enchantLevel: {equipment_key} {enchant_level}"
-                    )
-
                     if best_enchant_info_equipment.isEnchantable(player):
                         player.runEnchant(best_enchant_info_equipment)
                     else:
-                        print("Cannot enchant the selected equipment.")
+                        print(
+                            f"해당 장비 {best_enchant_info_equipment['equipment']}는 강화할 수 없는 상태입니다."
+                        )
                 else:
-                    print("No more enchantable equipment with expected growth.")
+                    print("강화할만한 장비가 존재하지 않습니다(모든 장비의 강화 기대 성장치가 0이하)")
                     break
 
             # TODO 좀더 똑똑하게
@@ -560,7 +559,7 @@ class SimulationManager:
 def __main__():
     simulationManager = SimulationManager()
     customDataFrame = CustomDataFrame()
-    for current_turn in range(1, 10):
+    for current_turn in range(1, 90):
         print("----------------- ---------------------current_turn : ", current_turn)
         simulationManager.processTurn(current_turn, customDataFrame)
     customDataFrame.exportToExcel()

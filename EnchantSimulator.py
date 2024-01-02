@@ -71,8 +71,6 @@ def get_rate_of_reaching_targetEnchantLevel(
 ):
     simulation_count = 10000
 
-    rateOfReachingEnchantLevel = 0
-
     result_table = {}
 
     for simulation in range(simulation_count):
