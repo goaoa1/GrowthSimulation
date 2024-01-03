@@ -29,6 +29,7 @@ class Player:
         expectedGrowthFromHuntingField_huntingField = None
 
         predicted_item_dict = self.item_dict.copy()
+
         for huntingField in _enterableHuntingField_List:
             print(" ------ choosing Hunting Field : ", huntingField.key)
             for gaining in huntingField.getPredictedGainings():
@@ -39,6 +40,7 @@ class Player:
             # 그 사냥터에서 성장할 수 있는 기댓값 찾기(획득 가능한 재화를 획득했다고 쳤을 때 성장 기댓값 계산)
             # 강화 가능한 장비류 수집
             # 예상 획득 재화를 토대로 계산
+
             result = self.getBestExpectedEnchantEquipment(predicted_item_dict)
             # 성장할 수 있을 때만 의미있다.
             if result["growth"] > 0:
@@ -68,10 +70,17 @@ class Player:
             if expectedGrowthFromEquipment >= expectedGrowthFromHuntingField:
                 expectedGrowthFromHuntingField = expectedGrowthFromEquipment
                 expectedGrowthFromHuntingField_huntingField = huntingField
-            return expectedGrowthFromHuntingField_huntingField
 
+        # 강화할 재화가 없어 예상 성장량을 측정하지 못할 때 이슈 처리를 위한 부분
+        # 가장 입장 전투력이 높은 사냥터를 입장한다.
+        # 입장 전투력도 같다면 사냥터 번호가 나중 것을 입장한다.
+        if expectedGrowthFromHuntingField_huntingField is None:
+            _enterLimit_battlePoint = 0
+            for huntingField in _enterableHuntingField_List:
+                if huntingField.enterLimit_battlePoint >= _enterLimit_battlePoint:
+                    expectedGrowthFromHuntingField_huntingField = huntingField
         # 그 기댓값들의 최대값의 사냥터를 반환
-        return huntingField
+        return expectedGrowthFromHuntingField_huntingField
 
     # TODO EXPECTEDGRWOTH가 0 아래로 내려가면 그만둔다.
     def calculateExpectedGrowthFromEquipmentEnchant(
@@ -346,9 +355,11 @@ class Equipment:
             try_count,
             targetEnchantLevel,
         )
-        print("-------------------result_table--------------------")
-        for _enchantLevel in sorted(result_table.keys()):
-            print(_enchantLevel, " : ", round(result_table[_enchantLevel], 4))
+        # 로그 남기는 부분
+        # print("-------------------result_table--------------------")
+        # for _enchantLevel in sorted(result_table.keys()):
+        #     print(_enchantLevel, " : ", round(result_table[_enchantLevel], 4))
+        ######
         for _enchantLevel in sorted(result_table.keys()):
             expectedBattlePoint += (
                 self.getBattlePointOfLevel(_enchantLevel) * result_table[_enchantLevel]
@@ -357,7 +368,7 @@ class Equipment:
         expectedGrowth = expectedBattlePoint - self.getBattlePointOfLevel(
             self.enchantLevel
         )
-        print("expectedGrowth", expectedGrowth)
+        # print("expectedGrowth", expectedGrowth)
 
         return expectedGrowth
 
@@ -378,8 +389,8 @@ class Equipment:
     # 외부에서 주어진 테이블 대로
     def getBattlePointOfLevel(self, enchantLevel):
         return (
-            self.enchantTable[enchantLevel]["dd"]
-            + self.enchantTable[enchantLevel]["pv"]
+            self.enchantTable[enchantLevel]["att"]
+            + self.enchantTable[enchantLevel]["def"]
         )
 
     def setInitLevel(self, level):
@@ -491,8 +502,11 @@ class SimulationManager:
 
     def processTurn(self, turn, customDataFrame):
         # n회 루프하도록 한다.
+        _huntingField = None
         for player in self.player_List:
             chosenHuntingField = player.chooseHuntingField(self.huntingField_list)
+            # 로그 기록용
+            _huntingField = chosenHuntingField.key
             print("player.chooseHuntingField", chosenHuntingField.key)
             chosenHuntingField.giveItem(player)
             # 강화할 게 없을 때까지 강화시도 한다.
@@ -524,6 +538,9 @@ class SimulationManager:
                     break
 
             # TODO 좀더 똑똑하게
+
+            # TODO 필요한 데이터 입장한 사냥터, 강화한 장비 및 강화 횟수, 턴 종료 시 전투력
+
             _player_key = player.key
             _item0 = list(player.item_dict.items())[0][0]
             _count0 = list(player.item_dict.items())[0][1]
@@ -532,11 +549,13 @@ class SimulationManager:
             _item2 = list(player.item_dict.items())[2][0]
             _count2 = list(player.item_dict.items())[2][1]
             _equipment0 = player.equipment_list[0].key
-            _equipment_level0 = player.equipment_list[0].enchantLevel
+            _equipment0_level = player.equipment_list[0].enchantLevel
             _equipment1 = player.equipment_list[1].key
-            _equipment_level1 = player.equipment_list[1].enchantLevel
+            _equipment1_level = player.equipment_list[1].enchantLevel
             _equipment2 = player.equipment_list[2].key
-            _equipment_level2 = player.equipment_list[2].enchantLevel
+            _equipment2_level = player.equipment_list[2].enchantLevel
+            _battlePoint = player.getBattlePoint()
+            # _huntingField 위에서 처리
 
             customDataFrame.build_dataFrame(
                 turn,
@@ -548,11 +567,13 @@ class SimulationManager:
                 _item2,
                 _count2,
                 _equipment0,
-                _equipment_level0,
+                _equipment0_level,
                 _equipment1,
-                _equipment_level1,
+                _equipment1_level,
                 _equipment2,
-                _equipment_level2,
+                _equipment2_level,
+                _battlePoint,
+                _huntingField,
             )
 
 

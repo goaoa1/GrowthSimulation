@@ -86,11 +86,13 @@ class CustomDataFrame:
         self.dataFrame["item2"] = []
         self.dataFrame["count2"] = []
         self.dataFrame["equipment0"] = []
-        self.dataFrame["equipment_level0"] = []
+        self.dataFrame["equipment0_level"] = []
         self.dataFrame["equipment1"] = []
-        self.dataFrame["equipment_level1"] = []
+        self.dataFrame["equipment1_level"] = []
         self.dataFrame["equipment2"] = []
-        self.dataFrame["equipment_level2"] = []
+        self.dataFrame["equipment2_level"] = []
+        self.dataFrame["battlePoint"] = []
+        self.dataFrame["huntingField"] = []
 
     def build_dataFrame(
         self,
@@ -103,11 +105,13 @@ class CustomDataFrame:
         item2,
         count2,
         equipment0,
-        equipment_level0,
+        equipment0_level,
         equipment1,
-        equipment_level1,
+        equipment1_level,
         equipment2,
-        equipment_level2,
+        equipment2_level,
+        battlePoint,
+        huntingField,
     ):
         self.dataFrame["turn"].append(turn)
         self.dataFrame["player_key"].append(player_key)
@@ -118,11 +122,13 @@ class CustomDataFrame:
         self.dataFrame["item2"].append(item2)
         self.dataFrame["count2"].append(count2)
         self.dataFrame["equipment0"].append(equipment0)
-        self.dataFrame["equipment_level0"].append(equipment_level0)
+        self.dataFrame["equipment0_level"].append(equipment0_level)
         self.dataFrame["equipment1"].append(equipment1)
-        self.dataFrame["equipment_level1"].append(equipment_level1)
+        self.dataFrame["equipment1_level"].append(equipment1_level)
         self.dataFrame["equipment2"].append(equipment2)
-        self.dataFrame["equipment_level2"].append(equipment_level2)
+        self.dataFrame["equipment2_level"].append(equipment2_level)
+        self.dataFrame["battlePoint"].append(battlePoint)
+        self.dataFrame["huntingField"].append(huntingField)
 
     def exportToExcel(self):
         df = pd.DataFrame(self.dataFrame)
