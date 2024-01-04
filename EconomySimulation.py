@@ -11,11 +11,13 @@ class Player:
     key = ""
     item_dict = {}
     equipment_list = []
+    logger = None
 
-    def __init__(self, key, item_dict, equipment_list):
+    def __init__(self, key, item_dict, equipment_list, logger):
         self.key = key
         self.item_dict = item_dict
         self.equipment_list = equipment_list
+        self.logger = logger
 
     def chooseHuntingField(self, huntingField_list):
         # 사용 가능한 사냥터 찾기
@@ -229,6 +231,7 @@ class Player:
             else:
                 self.item_dict[enchantMaterial] -= enchantMaterial_count
         print("current player inventory : ", self.item_dict)
+        self.logger.log_enchant(equipment.key, 1)
         # 실제 강화
         equipment.doEnchant()
 
@@ -285,6 +288,7 @@ class Equipment:
         self.upperLimitEnchantLevel = upperLimitEnchantLevel
 
     def doEnchant(self):
+        # TODO 소모된 재화 ...를 로그에 기록
         print(
             "now enchant equipment",
             self.key,
@@ -402,6 +406,7 @@ class HuntingField:
     key = ""
     gaining_list = []
     enterLimit_battlePoint = 0
+    # TODO 입장 소모되는 재화
 
     def __init__(self, key, enterLimit_battlePoint, tuple, tuple1, tuple2):
         self.gaining_list = [tuple, tuple1, tuple2]
@@ -439,8 +444,10 @@ class SimulationManager:
     enchantData = {}
     equipmentData_dict = {}
     equipment_dict = {}
+    logger = None
 
-    def __init__(self):
+    def __init__(self, logger):
+        self.logger = logger
         huntingField_dict = ExcelImporter.build_huntingFieldData()
         self.huntingField_list = []
         for _huntingField_key in huntingField_dict.keys():
@@ -493,6 +500,7 @@ class SimulationManager:
                     equipment_dict[_player_dict["equipment1"]],
                     equipment_dict[_player_dict["equipment2"]],
                 ],
+                logger,
             )
             for equipment in player.equipment_list:
                 equipment.setInitLevel(_player_dict["equipment0_level"])
@@ -556,6 +564,7 @@ class SimulationManager:
             _equipment2_level = player.equipment_list[2].enchantLevel
             _battlePoint = player.getBattlePoint()
             # _huntingField 위에서 처리
+            _enchant_log = self.logger.enchantLog_dict[self.logger.current_turn]
 
             customDataFrame.build_dataFrame(
                 turn,
@@ -574,16 +583,39 @@ class SimulationManager:
                 _equipment2_level,
                 _battlePoint,
                 _huntingField,
+                _enchant_log,
             )
 
 
+class Logger:
+    enchantLog_dict = {}
+    current_turn = 0
+
+    def __init__(self):
+        self.enchantLog_dict = {}
+
+    def log_turn(self, current_turn):
+        self.current_turn = current_turn
+        self.enchantLog_dict[current_turn] = {}
+
+    def log_enchant(self, key, count):
+        if key in self.enchantLog_dict:
+            self.enchantLog_dict[self.current_turn][key] += count
+        else:
+            self.enchantLog_dict[self.current_turn][key] = count
+
+
 def __main__():
-    simulationManager = SimulationManager()
+    logger = Logger()
+    simulationManager = SimulationManager(logger)
     customDataFrame = CustomDataFrame()
+
     for current_turn in range(1, 90):
+        logger.log_turn(current_turn)
         print("----------------- ---------------------current_turn : ", current_turn)
         simulationManager.processTurn(current_turn, customDataFrame)
     customDataFrame.exportToExcel()
+    # print(logger.enchantLog_dict.items())
 
 
 __main__()

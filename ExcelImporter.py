@@ -93,6 +93,7 @@ class CustomDataFrame:
         self.dataFrame["equipment2_level"] = []
         self.dataFrame["battlePoint"] = []
         self.dataFrame["huntingField"] = []
+        self.dataFrame["enchant_log"] = []
 
     def build_dataFrame(
         self,
@@ -112,6 +113,7 @@ class CustomDataFrame:
         equipment2_level,
         battlePoint,
         huntingField,
+        enchant_log,
     ):
         self.dataFrame["turn"].append(turn)
         self.dataFrame["player_key"].append(player_key)
@@ -129,6 +131,7 @@ class CustomDataFrame:
         self.dataFrame["equipment2_level"].append(equipment2_level)
         self.dataFrame["battlePoint"].append(battlePoint)
         self.dataFrame["huntingField"].append(huntingField)
+        self.dataFrame["enchant_log"].append(enchant_log)
 
     def exportToExcel(self):
         df = pd.DataFrame(self.dataFrame)
