@@ -231,9 +231,8 @@ class Player:
             else:
                 self.item_dict[enchantMaterial] -= enchantMaterial_count
         print("current player inventory : ", self.item_dict)
-        self.logger.log_enchant(equipment.key, 1)
         # 실제 강화
-        equipment.doEnchant()
+        equipment.doEnchant(self.logger)
 
     def getBattlePoint(self):
         _battlePoint = 0
@@ -287,7 +286,7 @@ class Equipment:
         self.lowerLimitEnchantLevel = lowerLimitEnchantLevel
         self.upperLimitEnchantLevel = upperLimitEnchantLevel
 
-    def doEnchant(self):
+    def doEnchant(self, logger):
         # TODO 소모된 재화 ...를 로그에 기록
         print(
             "now enchant equipment",
@@ -295,10 +294,13 @@ class Equipment:
             "current enchant level : ",
             self.enchantLevel,
         )
+        enchantLevel_change = 0
         # 성공 케이스
         if self.enchantTable[self.enchantLevel]["success_rate"] >= random.random():
-            self.enchantLevel += self.enchantTable[self.enchantLevel]["success_reward"]
+            enchantLevel_change = self.enchantTable[self.enchantLevel]["success_reward"]
+            self.enchantLevel += enchantLevel_change
             print("enchant success. current enchant level : ", self.enchantLevel)
+            logger.log_enchant(self.key, enchantLevel_change)
         else:
             if (
                 self.enchantLevel
@@ -311,10 +313,12 @@ class Equipment:
                 ):
                     print("enchant failed. but repair success: ", self.enchantLevel)
                 else:
-                    self.enchantLevel += self.enchantTable[self.enchantLevel][
+                    enchantLevel_change = self.enchantTable[self.enchantLevel][
                         "failure_penalty"
                     ]
+                    self.enchantLevel += enchantLevel_change
                     print("enchant failed. current enchant level : ", self.enchantLevel)
+                    logger.log_enchant(self.key, enchantLevel_change)
             else:
                 self.enchantLevel = self.lowerLimitEnchantLevel
                 print("enchant failed. but penaly is limited")
@@ -596,13 +600,15 @@ class Logger:
 
     def log_turn(self, current_turn):
         self.current_turn = current_turn
-        self.enchantLog_dict[current_turn] = {}
+        self.enchantLog_dict[current_turn] = []
 
-    def log_enchant(self, key, count):
-        if key in self.enchantLog_dict:
-            self.enchantLog_dict[self.current_turn][key] += count
+    def log_enchant(self, key, enchant_result):
+        if self.current_turn in self.enchantLog_dict:
+            # print("logged : ", self.current_turn, key, enchant_result)
+            self.enchantLog_dict[self.current_turn].append((key, enchant_result))
         else:
-            self.enchantLog_dict[self.current_turn][key] = count
+            # print("new log : ", self.current_turn, key, enchant_result)
+            self.enchantLog_dict[self.current_turn] = [(key, enchant_result)]
 
 
 def __main__():
