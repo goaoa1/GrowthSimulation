@@ -312,6 +312,7 @@ class Equipment:
                     >= random.random()
                 ):
                     print("enchant failed. but repair success: ", self.enchantLevel)
+                    logger.log_enchant(self.key, enchantLevel_change)
                 else:
                     enchantLevel_change = self.enchantTable[self.enchantLevel][
                         "failure_penalty"
@@ -616,7 +617,7 @@ def __main__():
     simulationManager = SimulationManager(logger)
     customDataFrame = CustomDataFrame()
 
-    for current_turn in range(1, 90):
+    for current_turn in range(1, 91):
         logger.log_turn(current_turn)
         print("----------------- ---------------------current_turn : ", current_turn)
         simulationManager.processTurn(current_turn, customDataFrame)
