@@ -33,7 +33,7 @@ class Player:
         predicted_item_dict = self.item_dict.copy()
 
         for huntingField in _enterableHuntingField_List:
-            print(" ------ choosing Hunting Field : ", huntingField.key)
+            # print(" ------ choosing Hunting Field : ", huntingField.key)
             for gaining in huntingField.getPredictedGainings():
                 if gaining[0] in predicted_item_dict:
                     predicted_item_dict[gaining[0]] += gaining[1]
@@ -51,23 +51,23 @@ class Player:
                 enchantLevel = result["enchantLevel"]
                 tryCount = result["tryCount"]
             else:
-                print(
-                    "강화의 기댓값이 0 이하이기 때문에 강화하지 않습ㄴ디ㅏ.",
-                    result["equipment"],
-                    result["growth"],
-                )
+                # print(
+                #     "강화의 기댓값이 0 이하이기 때문에 강화하지 않습ㄴ디ㅏ.",
+                #     result["equipment"],
+                #     result["growth"],
+                # )
                 continue
-            print(
-                "getBestExpectedEnchantEquipment 결과 : ",
-                "equipment : ",
-                result["equipment"].key,
-                "growth : ",
-                result["growth"],
-                "enchantLevel : ",
-                result["enchantLevel"],
-                "tryCount : ",
-                result["tryCount"],
-            )
+            # print(
+            #     "getBestExpectedEnchantEquipment 결과 : ",
+            #     "equipment : ",
+            #     result["equipment"].key,
+            #     "growth : ",
+            #     result["growth"],
+            #     "enchantLevel : ",
+            #     result["enchantLevel"],
+            #     "tryCount : ",
+            #     result["tryCount"],
+            # )
             expectedGrowthFromEquipment = expectedGrowth
             if expectedGrowthFromEquipment >= expectedGrowthFromHuntingField:
                 expectedGrowthFromHuntingField = expectedGrowthFromEquipment
@@ -90,10 +90,10 @@ class Player:
     ):
         expectedGrowthFromEquipment = 0
         if not (equipment.isEnchantable(self)):
-            print("해당 장비는 강화 불가능합니다.")
+            # print("해당 장비는 강화 불가능합니다.")
             return
         if equipment.enchantLevel >= targetEnchantLevel:
-            print("목표 강화 레벨과 현재 강화 레벨이 동일하여 강화할 수 없습니다.")
+            # print("목표 강화 레벨과 현재 강화 레벨이 동일하여 강화할 수 없습니다.")
             return
         # 강화 시도할 개수
         try_count = -1
@@ -109,7 +109,7 @@ class Player:
                     try_count = _try_count
                 if try_count >= _try_count:
                     try_count = _try_count
-        print("try_count", try_count)
+        # print("try_count", try_count)
 
         if (
             equipment.enchantLevel
@@ -118,7 +118,7 @@ class Player:
             < targetEnchantLevel
         ):
             #  불가능한 케이스이므로 리턴
-            print("모든 강화를 성공하더라도 목표 강화 레벨에 도달할 수 없습니다.")
+            # print("모든 강화를 성공하더라도 목표 강화 레벨에 도달할 수 없습니다.")
             return
 
         # TODO trycount 가 0일 때 처리
@@ -161,7 +161,7 @@ class Player:
         expectedGrowthFromEquipment_enchantLevel = 0
         expectedGrowthFromEquipment_tryCount = 0
         for equipment in self.equipment_list:
-            print("================ for equipment", equipment.key)
+            # print("================ for equipment", equipment.key)
             if not (equipment.isEnchantable(self)):
                 continue
             expectedGrowthFromEnchantLevel = 0
@@ -171,7 +171,7 @@ class Player:
             for _targetenchantLevel in range(
                 equipment.enchantLevel + 1, equipment.upperLimitEnchantLevel + 1
             ):
-                print("_targetenchantLevel", _targetenchantLevel)
+                # print("_targetenchantLevel", _targetenchantLevel)
                 expectedGrowthFromEnchantLevel_tuple = (
                     self.calculateExpectedGrowthFromEquipmentEnchant(
                         equipment, _targetenchantLevel, item_dict
@@ -183,10 +183,10 @@ class Player:
                     # 현실적으로 불가능한 케이스
                     continue
                 else:
-                    print(
-                        "expectedGrowthFromEnchantLevel_tuple",
-                        expectedGrowthFromEnchantLevel_tuple,
-                    )
+                    # print(
+                    #     "expectedGrowthFromEnchantLevel_tuple",
+                    #     expectedGrowthFromEnchantLevel_tuple,
+                    # )
                     if (
                         expectedGrowthFromEnchantLevel_tuple[0]
                         >= expectedGrowthFromEnchantLevel
@@ -218,19 +218,19 @@ class Player:
 
     def runEnchant(self, equipment):
         # 인벤토리에서 재화 차감
-        print("player run enchant", equipment.key)
-        print("current player inventory : ", self.item_dict)
+        # print("player run enchant", equipment.key)
+        # print("current player inventory : ", self.item_dict)
         for tuple in equipment.getEnchantRecipe(equipment.enchantLevel):
             enchantMaterial = tuple[0]
             enchantMaterial_count = tuple[1]
             if self.item_dict[enchantMaterial] < enchantMaterial_count:
                 # 강화에 필요한 재화가 모자라는 경우
-                print("강화에 필요한 재화가 모자랍니다.")
+                # print("강화에 필요한 재화가 모자랍니다.")
                 raise Exception("isenchantable 에서 검증했을 텐데 왜 또 걸릴까")
                 return
             else:
                 self.item_dict[enchantMaterial] -= enchantMaterial_count
-        print("current player inventory : ", self.item_dict)
+        # print("current player inventory : ", self.item_dict)
         # 실제 강화
         equipment.doEnchant(self.logger)
 
@@ -288,18 +288,18 @@ class Equipment:
 
     def doEnchant(self, logger):
         # TODO 소모된 재화 ...를 로그에 기록
-        print(
-            "now enchant equipment",
-            self.key,
-            "current enchant level : ",
-            self.enchantLevel,
-        )
+        # print(
+        #     "now enchant equipment",
+        #     self.key,
+        #     "current enchant level : ",
+        #     self.enchantLevel,
+        # )
         enchantLevel_change = 0
         # 성공 케이스
         if self.enchantTable[self.enchantLevel]["success_rate"] >= random.random():
             enchantLevel_change = self.enchantTable[self.enchantLevel]["success_reward"]
             self.enchantLevel += enchantLevel_change
-            print("enchant success. current enchant level : ", self.enchantLevel)
+            # print("enchant success. current enchant level : ", self.enchantLevel)
             logger.log_enchant(self.key, enchantLevel_change)
         else:
             if (
@@ -311,18 +311,18 @@ class Equipment:
                     self.enchantTable[self.enchantLevel]["repair_rate"]
                     >= random.random()
                 ):
-                    print("enchant failed. but repair success: ", self.enchantLevel)
+                    # print("enchant failed. but repair success: ", self.enchantLevel)
                     logger.log_enchant(self.key, enchantLevel_change)
                 else:
                     enchantLevel_change = self.enchantTable[self.enchantLevel][
                         "failure_penalty"
                     ]
                     self.enchantLevel += enchantLevel_change
-                    print("enchant failed. current enchant level : ", self.enchantLevel)
+                    # print("enchant failed. current enchant level : ", self.enchantLevel)
                     logger.log_enchant(self.key, enchantLevel_change)
             else:
                 self.enchantLevel = self.lowerLimitEnchantLevel
-                print("enchant failed. but penaly is limited")
+                # print("enchant failed. but penaly is limited")
         # 성공 시 강화 단계 상승
         # 실패 시 아무일도 일어나지 않음 또는 강화 단계 하락
 
@@ -335,11 +335,11 @@ class Equipment:
         # TODO 강화 성공 한계 치 등록 필요
         # 강화 결과 실패 시(음수가 나오는) 기대 성장치 합계
         # TODO 강화 실패 한계 치 등록 필요
-        print(
-            "targetEnchantLevel, self.upperLimitEnchantLevel",
-            targetEnchantLevel,
-            self.upperLimitEnchantLevel,
-        )
+        # print(
+        #     "targetEnchantLevel, self.upperLimitEnchantLevel",
+        #     targetEnchantLevel,
+        #     self.upperLimitEnchantLevel,
+        # )
         if targetEnchantLevel > self.upperLimitEnchantLevel:
             raise Exception("앞에서 걸러졌어야 한다.")
             print(
@@ -347,11 +347,11 @@ class Equipment:
                 targetEnchantLevel,
             )
             targetEnchantLevel = self.upperLimitEnchantLevel
-        print(
-            "self.enchantLevel, targetEnchantLevel",
-            self.enchantLevel,
-            targetEnchantLevel,
-        )
+        # print(
+        #     "self.enchantLevel, targetEnchantLevel",
+        #     self.enchantLevel,
+        #     targetEnchantLevel,
+        # )
         # print("for _targetEnchantLevel in range(targetEnchantLevel):")
         expectedBattlePoint = 0
         expectedGrowth = 0
@@ -391,7 +391,7 @@ class Equipment:
             enchantMaterial_count = tuple[1]
             if player.item_dict[enchantMaterial] < enchantMaterial_count:
                 # 강화에 필요한 재화가 모자라는 경우
-                print("강화에 필요한 재화가 모자랍니다.")
+                # print("강화에 필요한 재화가 모자랍니다.")
                 return False
         return True
 
@@ -423,12 +423,12 @@ class HuntingField:
 
     def giveItem(self, player):
         # TODO self.gaining_list 에서 적절히 거른 결과물을 지급하자
-        print("gaining_list : ", self.gaining_list)
+        # print("gaining_list : ", self.gaining_list)
         for gaining in self.gaining_list:
             # 확률적으로 지급
             if gaining[2] >= random.random():
                 player.acquire_item(gaining[0], gaining[1])
-                print("player received Item", gaining[0], gaining[1], "from", self.key)
+                # print("player received Item", gaining[0], gaining[1], "from", self.key)
             else:
                 continue
 
@@ -520,11 +520,11 @@ class SimulationManager:
             chosenHuntingField = player.chooseHuntingField(self.huntingField_list)
             # 로그 기록용
             _huntingField = chosenHuntingField.key
-            print("player.chooseHuntingField", chosenHuntingField.key)
+            # print("player.chooseHuntingField", chosenHuntingField.key)
             chosenHuntingField.giveItem(player)
             # 강화할 게 없을 때까지 강화시도 한다.
             while True:
-                print("----now find getBestExpectedEnchantEquipment")
+                # print("----now find getBestExpectedEnchantEquipment")
 
                 best_enchant_info = player.getBestExpectedEnchantEquipment(
                     player.item_dict
@@ -533,27 +533,25 @@ class SimulationManager:
                 if growth > 0:
                     best_enchant_info_equipment = best_enchant_info["equipment"]
                 else:
-                    print(
-                        "강화 기대 성장치가 0 이하이므로 강화하지 않습니다(선택하지 않습니다.)",
-                        best_enchant_info["equipment"],
-                        best_enchant_info["growth"],
-                    )
+                    # print(
+                    #     "강화 기대 성장치가 0 이하이므로 강화하지 않습니다(선택하지 않습니다.)",
+                    #     best_enchant_info["equipment"],
+                    #     best_enchant_info["growth"],
+                    # )
                     break
                 if best_enchant_info_equipment is not None:
                     if best_enchant_info_equipment.isEnchantable(player):
                         player.runEnchant(best_enchant_info_equipment)
                     else:
-                        print(
-                            f"해당 장비 {best_enchant_info_equipment['equipment']}는 강화할 수 없는 상태입니다."
-                        )
+                        # print(
+                        #     f"해당 장비 {best_enchant_info_equipment['equipment']}는 강화할 수 없는 상태입니다."
+                        # )
+                        pass
                 else:
-                    print("강화할만한 장비가 존재하지 않습니다(모든 장비의 강화 기대 성장치가 0이하)")
+                    # print("강화할만한 장비가 존재하지 않습니다(모든 장비의 강화 기대 성장치가 0이하)")
                     break
 
             # TODO 좀더 똑똑하게
-
-            # TODO 필요한 데이터 입장한 사냥터, 강화한 장비 및 강화 횟수, 턴 종료 시 전투력
-
             _player_key = player.key
             _item0 = list(player.item_dict.items())[0][0]
             _count0 = list(player.item_dict.items())[0][1]

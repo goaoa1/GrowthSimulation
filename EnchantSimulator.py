@@ -129,12 +129,12 @@ def get_rate_of_reaching_targetEnchantLevel(
 # enchantData = EnchantData()
 
 # result_dict = get_rate_of_reaching_targetEnchantLevel(
-#     enchantData.enchantTable["equipment0"],
-#     0,
-#     0,
-#     10,
-#     30,
-#     10,
+#     enchantTable=enchantData.enchantTable["equipment0"],
+#     currentEnchantLevel=3,
+#     lowerLimitEnchantLevel=0,
+#     upperLimitEnchantLevel=10,
+#     max_try_count=9,
+#     targetEnchantLevel=10,
 # )
 
 

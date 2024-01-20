@@ -1,0 +1,2 @@
+py EconomySimulation.py
+pause
